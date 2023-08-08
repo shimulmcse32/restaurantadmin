@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptMoneyReceipt" language="groovy" pageWidth="595" pageHeight="842" columnWidth="537" leftMargin="29" rightMargin="29" topMargin="20" bottomMargin="15">
+	<property name="ireport.zoom" value="1.500000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="163"/>
+	<parameter name="companyName" class="java.lang.String"/>
+	<parameter name="address" class="java.lang.String"/>
+	<parameter name="phoneFax" class="java.lang.String"/>
+	<parameter name="sql" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["select * from funMoneyReceipt('R1')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="devloperInfo" class="java.lang.String"/>
+	<parameter name="userName" class="java.lang.String"/>
+	<parameter name="userIp" class="java.lang.String"/>
+	<parameter name="logo" class="java.lang.String">
+		<defaultValueExpression><![CDATA["./0.png"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="branchName" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[$P!{sql}]]>
+	</queryString>
+	<field name="vReceiptId" class="java.lang.String"/>
+	<field name="vReceiptNo" class="java.lang.String"/>
+	<field name="dReceiptDate" class="java.sql.Timestamp"/>
+	<field name="vSupplierName" class="java.lang.String"/>
+	<field name="vSupplierAddress" class="java.lang.String"/>
+	<field name="mNetAmount" class="java.math.BigDecimal"/>
+	<field name="vInword" class="java.lang.String"/>
+	<field name="vChequeNo" class="java.lang.String"/>
+	<field name="dChequeDate" class="java.lang.String"/>
+	<field name="vDescription" class="java.lang.String"/>
+	<field name="vStatus" class="java.lang.String"/>
+	<variable name="sl" class="java.lang.Number" calculation="Count">
+		<variableExpression><![CDATA[$V{sl}+1]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<group name="ReceiptNo">
+		<groupExpression><![CDATA[$F{vReceiptNo}]]></groupExpression>
+		<groupHeader>
+			<band height="236">
+				<image scaleImage="FillFrame" isLazy="true" onErrorType="Blank">
+					<reportElement x="0" y="1" width="51" height="41"/>
+					<imageExpression class="java.lang.String"><![CDATA[$P{logo}]]></imageExpression>
+				</image>
+				<rectangle radius="10">
+					<reportElement x="202" y="70" width="132" height="16" forecolor="#333333" backcolor="#FFFFFF"/>
+				</rectangle>
+				<textField>
+					<reportElement x="0" y="0" width="536" height="17"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{companyName}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="0" y="32" width="536" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{address}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="0" y="46" width="536" height="12"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{phoneFax}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="71" width="536" height="16" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[OFFICIAL RECEIPT]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="59" width="536" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="52" y="212" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="137" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[Address]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="193" width="177" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[In Cash / Pay Order No. / Cheque No : ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="181" y="193" width="182" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vChequeNo}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="100" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[Receipt No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="52" y="174" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="52" y="100" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="363" y="193" width="71" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[Cheque Date :]]></text>
+				</staticText>
+				<textField pattern="#,##0.000;-#,##0.000">
+					<reportElement x="60" y="155" width="476" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mNetAmount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd-MM-yyyy">
+					<reportElement x="436" y="100" width="100" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$F{dReceiptDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="363" y="100" width="71" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[Receipt Date :]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="119" width="476" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vSupplierName}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="212" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[Description]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="60" y="212" width="476" height="15" forecolor="#000000"/>
+					<box>
+						<pen lineStyle="Dashed"/>
+						<topPen lineStyle="Dashed"/>
+						<leftPen lineStyle="Dashed"/>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+						<rightPen lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vDescription}]]></textFieldExpression>
+				</textField>
+				<textField pattern="">
+					<reportElement x="436" y="192" width="100" height="15" forecolor="#000000">
+						<printWhenExpression><![CDATA[$F{vChequeNo}.compareTo("")?true:false]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{dChequeDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="174" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[In Words]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="174" width="476" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vInword}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="155" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<text><![CDATA[Amount]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="119" width="51" height="15" forecolor="#000000"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[Paid To ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="60" y="137" width="476" height="15" forecolor="#000000"/>
+					<box>
+						<pen lineStyle="Dashed"/>
+						<topPen lineStyle="Dashed"/>
+						<leftPen lineStyle="Dashed"/>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+						<rightPen lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vSupplierAddress}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="52" y="155" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="52" y="137" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="100" width="114" height="15" forecolor="#000000"/>
+					<box>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="SansSerif"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vReceiptNo}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="52" y="120" width="5" height="15" forecolor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="0" y="17" width="536" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{branchName}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<pageFooter>
+		<band height="23" splitType="Stretch">
+			<textField>
+				<reportElement x="459" y="13" width="57" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="11" width="536" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField pattern="dd-MM-yy h.mm a">
+				<reportElement x="1" y="13" width="94" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="239" y="13" width="212" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{devloperInfo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="146" y="13" width="93" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userIp}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="517" y="13" width="22" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="13" width="52" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="407" y="0" width="128" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Status: "+$F{vStatus}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="48" splitType="Stretch">
+			<staticText>
+				<reportElement x="382" y="28" width="136" height="20" forecolor="#000000"/>
+				<box>
+					<pen lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dashed"/>
+					<rightPen lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<text><![CDATA[Authorize Signature & Seal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="33" width="337" height="15" forecolor="#000000"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[N.B    THIS RECEIPT IS VALID SUBJECT TO REALISATION Of THE CHEQUE/P.O/DD]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptMenuRecipeReport" language="groovy" pageWidth="595" pageHeight="842" columnWidth="562" leftMargin="22" rightMargin="11" topMargin="20" bottomMargin="30">
+	<property name="ireport.zoom" value="2.4157650000000146"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="221"/>
+	<style name="BOLD" forecolor="#000000" backcolor="#000000" fill="Solid" markup="styled" fontSize="10" isItalic="false" isUnderline="false" isStrikeThrough="false">
+		<pen lineWidth="0.5" lineStyle="Double"/>
+		<conditionalStyle>
+			<style forecolor="#000000" fill="Solid" fontName="SansSerif" fontSize="10" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false">
+				<pen lineWidth="0.0" lineStyle="Double"/>
+			</style>
+		</conditionalStyle>
+	</style>
+	<parameter name="companyName" class="java.lang.String"/>
+	<parameter name="address" class="java.lang.String"/>
+	<parameter name="phoneFax" class="java.lang.String"/>
+	<parameter name="sql" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["select * from funItemRecipeReport('C17', 'FI108', '%') order by vCategoryName, vItemName, vSizeName, vRawItemName"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="devloperInfo" class="java.lang.String"/>
+	<parameter name="userName" class="java.lang.String"/>
+	<parameter name="userIp" class="java.lang.String"/>
+	<parameter name="logo" class="java.lang.String">
+		<defaultValueExpression><![CDATA["./0.png"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="branchName" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[$P!{sql}]]>
+	</queryString>
+	<field name="vReceipeId" class="java.lang.String"/>
+	<field name="vCategoryId" class="java.lang.String"/>
+	<field name="vCategoryName" class="java.lang.String"/>
+	<field name="vItemId" class="java.lang.String"/>
+	<field name="vItemName" class="java.lang.String"/>
+	<field name="vSizeId" class="java.lang.String"/>
+	<field name="vSizeName" class="java.lang.String"/>
+	<field name="vRawItemId" class="java.lang.String"/>
+	<field name="vRawItemName" class="java.lang.String"/>
+	<field name="iUnitId" class="java.lang.Integer"/>
+	<field name="vUnitName" class="java.lang.String"/>
+	<field name="mQty" class="java.math.BigDecimal"/>
+	<variable name="sl" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{sl}+1]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="groupProfit" class="java.math.BigDecimal" resetType="Group" resetGroup="category" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="totalProfit" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<group name="category">
+		<groupExpression><![CDATA[$F{vCategoryName}]]></groupExpression>
+		<groupHeader>
+			<band height="17">
+				<textField isStretchWithOverflow="true">
+					<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="11" y="1" width="488" height="14"/>
+					<box leftPadding="4"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Category: "+$F{vCategoryName}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="Float" x="0" y="16" width="562" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement positionType="Float" x="0" y="-1" width="562" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="Finish Item">
+		<groupExpression><![CDATA[$F{vItemName}]]></groupExpression>
+		<groupHeader>
+			<band height="19">
+				<textField isStretchWithOverflow="true">
+					<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="11" y="2" width="488" height="14"/>
+					<box leftPadding="4"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Menu Name: "+$F{vItemName}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="Float" x="0" y="18" width="562" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="Size">
+		<groupExpression><![CDATA[$F{vSizeName}]]></groupExpression>
+		<groupHeader>
+			<band height="19">
+				<textField isStretchWithOverflow="true">
+					<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="11" y="2" width="488" height="14"/>
+					<box leftPadding="4"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Size: "+$F{vSizeName}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="Float" x="0" y="18" width="562" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="58" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="57" width="562" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="45" width="562" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{phoneFax}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="562" height="17"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{companyName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="31" width="562" height="14"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{address}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" isLazy="true" onErrorType="Blank">
+				<reportElement x="0" y="1" width="80" height="41"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="1" y="17" width="561" height="14"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{branchName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="20" splitType="Stretch">
+			<rectangle radius="10">
+				<reportElement x="230" y="2" width="99" height="16"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="1" y="2" width="561" height="16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Menu Recipe]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15">
+			<line>
+				<reportElement x="0" y="0" width="562" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="0" width="1" height="15"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="14" width="562" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="494" y="1" width="67" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="493" y="0" width="1" height="15"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="384" y="1" width="109" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit Name]]></text>
+			</staticText>
+			<line>
+				<reportElement x="383" y="0" width="1" height="15"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="1" y="1" width="33" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SL#]]></text>
+			</staticText>
+			<line>
+				<reportElement x="34" y="0" width="1" height="15"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="35" y="1" width="348" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Item Name]]></text>
+			</staticText>
+			<line>
+				<reportElement x="561" y="0" width="1" height="15"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="-1" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement positionType="Float" x="0" y="12" width="562" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="383" y="-1" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="34" y="-1" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="493" y="-1" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="561" y="-1" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="35" y="0" width="348" height="12"/>
+				<box leftPadding="4"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vRawItemName}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="384" y="0" width="109" height="12"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vUnitName}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement style="BOLD" stretchType="RelativeToTallestObject" x="494" y="0" width="67" height="12"/>
+				<box leftPadding="0" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mQty}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="1" y="0" width="33" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sl}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="11">
+			<textField evaluationTime="Report">
+				<reportElement x="539" y="1" width="22" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="481" y="1" width="57" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yy h.mm a">
+				<reportElement x="0" y="1" width="93" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="252" y="1" width="229" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{devloperInfo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="93" y="1" width="84" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="177" y="1" width="75" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userIp}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,753 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptSupplierWiseReturnSummary" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.9965000000000082"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="companyName" class="java.lang.String"/>
+	<parameter name="address" class="java.lang.String"/>
+	<parameter name="phoneFax" class="java.lang.String"/>
+	<parameter name="sql" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["select vSupplierDetails, iSupCode, vReturnId, vPurchaseId, vReturnNo, iRetCode, dReturnDate, vPurchaseType, vPurchaseNo, dPurchaseDate, SUM(mAmount)mInvAmount, SUM(mDiscount)mDiscount, SUM(mNetAmount) - SUM(mVatAmount)mWOVatAmount, SUM(mVatAmount)mVatAmount, SUM(mNetAmount)mNetAmount from (select case when sup.vSupplierCode = '' then sup.vSupplierName else sup.vSupplierCode+' - '+sup.vSupplierName end vSupplierDetails, dbo.funGetNumeric(sup.vSupplierCode) iSupCode, pri.vReturnId, pri.vPurchaseId, pri.vReturnNo, dbo.funGetNumeric(pri.vReturnNo) iRetCode, pri.dReturnDate, pui.vPurchaseType, pui.vPurchaseNo, pui.dPurchaseDate, prd.mAmount, prd.mDiscount, prd.mVatAmount, prd.mNetAmount from trans.tbPurchaseReturnInfo pri, trans.tbPurchaseReturnDetails prd, trans.tbPurchaseInfo pui, master.tbSupplierMaster sup where pri.vReturnId = prd.vReturnId and pri.vPurchaseId = pui.vPurchaseId and pui.vSupplierId = sup.vSupplierId and pri.vStatusId = 'S6' and prd.iActive = 1 and pui.vSupplierId in (select Item from dbo.Split('S1')) and pri.dReturnDate between '2020-01-01' and '2020-12-31' and pri.vBranchId = 'B0001') tbTemp group by vSupplierDetails, iSupCode, vReturnId, vPurchaseId, vReturnNo, iRetCode, dReturnDate, vPurchaseType, vPurchaseNo, dPurchaseDate order by iSupCode, vSupplierDetails, dReturnDate, iRetCode"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="devloperInfo" class="java.lang.String"/>
+	<parameter name="userName" class="java.lang.String"/>
+	<parameter name="userIp" class="java.lang.String"/>
+	<parameter name="logo" class="java.lang.String">
+		<defaultValueExpression><![CDATA["./0.png"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fromToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01-07-10 to 07-01-11"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="branchName" class="java.lang.String"/>
+	<parameter name="url" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[$P!{sql}]]>
+	</queryString>
+	<field name="vSupplierDetails" class="java.lang.String"/>
+	<field name="iSupCode" class="java.lang.Long"/>
+	<field name="vReturnId" class="java.lang.String"/>
+	<field name="vPurchaseId" class="java.lang.String"/>
+	<field name="vReturnNo" class="java.lang.String"/>
+	<field name="iRetCode" class="java.lang.Long"/>
+	<field name="dReturnDate" class="java.sql.Date"/>
+	<field name="vPurchaseType" class="java.lang.String"/>
+	<field name="vPurchaseNo" class="java.lang.String"/>
+	<field name="dPurchaseDate" class="java.sql.Date"/>
+	<field name="mInvAmount" class="java.math.BigDecimal"/>
+	<field name="mDiscount" class="java.math.BigDecimal"/>
+	<field name="mWOVatAmount" class="java.math.BigDecimal"/>
+	<field name="mVatAmount" class="java.math.BigDecimal"/>
+	<field name="mNetAmount" class="java.math.BigDecimal"/>
+	<variable name="sl" class="java.lang.Integer" resetType="Group" resetGroup="Supplier" incrementType="Report" calculation="Sum">
+		<variableExpression><![CDATA[$V{sl}+1]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlSupAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="Supplier" calculation="Sum">
+		<variableExpression><![CDATA[$F{mInvAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlSupDiscount" class="java.math.BigDecimal" resetType="Group" resetGroup="Supplier" calculation="Sum">
+		<variableExpression><![CDATA[$F{mDiscount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlSupVat" class="java.math.BigDecimal" resetType="Group" resetGroup="Supplier" calculation="Sum">
+		<variableExpression><![CDATA[$F{mVatAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlSupWithoutVat" class="java.math.BigDecimal" resetType="Group" resetGroup="Supplier" calculation="Sum">
+		<variableExpression><![CDATA[$F{mWOVatAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlSupNetAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="Supplier" calculation="Sum">
+		<variableExpression><![CDATA[$F{mNetAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlGrandAmount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{mInvAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlGrandDiscount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{mDiscount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlGrandVat" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{mVatAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlGrandWithoutVat" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{mWOVatAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="ttlGrandNetAmount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{mNetAmount}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<group name="Supplier" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{vSupplierDetails}]]></groupExpression>
+		<groupHeader>
+			<band height="16" splitType="Stretch">
+				<line>
+					<reportElement positionType="Float" x="0" y="15" width="555" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="0" y="0" width="555" height="15"/>
+					<box leftPadding="2"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vSupplierDetails}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="16">
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlSupAmount}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+					<reportElement stretchType="RelativeToTallestObject" x="351" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlSupDiscount}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+					<reportElement stretchType="RelativeToTallestObject" x="402" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlSupVat}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+					<reportElement stretchType="RelativeToTallestObject" x="453" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlSupWithoutVat}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+					<reportElement stretchType="RelativeToTallestObject" x="505" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlSupNetAmount}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="222" y="0" width="77" height="15"/>
+					<box rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Supplier Total:]]></text>
+				</staticText>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="555" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="401" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="452" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement positionType="Float" x="0" y="15" width="555" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="299" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="504" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="350" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<title>
+		<band height="44" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="43" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="31" width="555" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{phoneFax}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="555" height="17"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{companyName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="17" width="555" height="14"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{address}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" isLazy="true" onErrorType="Blank">
+				<reportElement x="0" y="1" width="80" height="41"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="38">
+			<rectangle radius="10">
+				<reportElement x="172" y="2" width="211" height="16"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="0" y="2" width="555" height="16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Supplier Wise Return Summary]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="383" y="21" width="172" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{fromToDate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="21" width="383" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Branch Name: "+$P{branchName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="27" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="26" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="24" y="0" width="1" height="27"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="300" y="14" width="50" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="453" y="14" width="50" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[W/O VAT]]></text>
+			</staticText>
+			<line>
+				<reportElement x="401" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="555" y="0" width="1" height="27"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="1" y="1" width="23" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SL#]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="1" height="27"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="351" y="14" width="50" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Discount]]></text>
+			</staticText>
+			<line>
+				<reportElement x="350" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="505" y="14" width="50" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net]]></text>
+			</staticText>
+			<line>
+				<reportElement x="504" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="25" y="14" width="81" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Return No]]></text>
+			</staticText>
+			<line>
+				<reportElement x="106" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="107" y="14" width="55" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<line>
+				<reportElement x="243" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="25" y="1" width="274" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Purchase Return Info]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="244" y="14" width="55" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<line>
+				<reportElement x="299" y="0" width="1" height="27"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="452" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="402" y="14" width="50" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[VAT]]></text>
+			</staticText>
+			<line>
+				<reportElement x="25" y="13" width="530" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="300" y="1" width="255" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<line>
+				<reportElement x="162" y="13" width="1" height="14"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="163" y="14" width="80" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Invoice No]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="401" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="300" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mInvAmount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="453" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mWOVatAmount}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement positionType="Float" x="0" y="15" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="24" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="555" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="1" y="0" width="23" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sl}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="350" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="351" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mDiscount}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="504" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="505" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mNetAmount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" hyperlinkType="Reference">
+				<reportElement stretchType="RelativeToTallestObject" x="25" y="0" width="81" height="15" isPrintWhenDetailOverflows="true"/>
+				<box leftPadding="2" rightPadding="0"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vReturnNo}]]></textFieldExpression>
+				<hyperlinkReferenceExpression><![CDATA[$P{url}+"return="+$F{vReturnId}]]></hyperlinkReferenceExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="106" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="243" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yy">
+				<reportElement stretchType="RelativeToTallestObject" x="107" y="0" width="55" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{dReturnDate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="244" y="0" width="55" height="15" isPrintWhenDetailOverflows="true"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dPurchaseDate}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="299" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="452" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="402" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mVatAmount}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="162" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" hyperlinkType="Reference">
+				<reportElement stretchType="RelativeToTallestObject" x="163" y="0" width="80" height="15" isPrintWhenDetailOverflows="true"/>
+				<box leftPadding="0" rightPadding="0"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vPurchaseNo}]]></textFieldExpression>
+				<hyperlinkReferenceExpression><![CDATA[$P{url}+"purchase="+$F{vPurchaseId}]]></hyperlinkReferenceExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="11" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="1" width="22" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="466" y="1" width="57" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yy h.mm a">
+				<reportElement x="1" y="1" width="94" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="245" y="1" width="227" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{devloperInfo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="1" width="52" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="146" y="1" width="93" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{userIp}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="16" splitType="Stretch">
+			<staticText>
+				<reportElement x="222" y="0" width="77" height="15"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Grand Total:]]></text>
+			</staticText>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="350" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="555" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement positionType="Float" x="0" y="15" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="401" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="504" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="299" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="452" y="0" width="1" height="16" isPrintWhenDetailOverflows="true"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="351" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlGrandDiscount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="402" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlGrandVat}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="505" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlGrandNetAmount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="453" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlGrandWithoutVat}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)">
+				<reportElement stretchType="RelativeToTallestObject" x="300" y="0" width="50" height="15" isPrintWhenDetailOverflows="true"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlGrandAmount}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

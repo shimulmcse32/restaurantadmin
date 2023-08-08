@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptOnlineMenuQRCode" language="groovy" pageWidth="216" pageHeight="288" columnWidth="216" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.3636363636363689"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="url" class="java.lang.String"/>
+	<parameter name="companyName" class="java.lang.String"/>
+	<parameter name="sql" class="java.lang.String">
+		<defaultValueExpression><![CDATA["select * from master.tbItemCategory"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[$P!{sql}]]>
+	</queryString>
+	<field name="iAutoId" class="java.lang.Long"/>
+	<field name="vBranchId" class="java.lang.String"/>
+	<field name="vCategoryId" class="java.lang.String"/>
+	<field name="vCategoryName" class="java.lang.String"/>
+	<field name="vCategoryDescription" class="java.lang.String"/>
+	<field name="vCategoryColor" class="java.lang.String"/>
+	<field name="vCategoryType" class="java.lang.String"/>
+	<field name="iShowOnline" class="java.lang.Integer"/>
+	<field name="iActive" class="java.lang.Integer"/>
+	<field name="iSynced" class="java.lang.Integer"/>
+	<field name="vSyncedMacId" class="java.lang.String"/>
+	<field name="vCreatedBy" class="java.lang.String"/>
+	<field name="dCreatedDate" class="java.sql.Timestamp"/>
+	<field name="vModifiedBy" class="java.lang.String"/>
+	<field name="dModifiedDate" class="java.sql.Timestamp"/>
+	<variable name="sl" class="java.lang.Number" calculation="Count">
+		<variableExpression><![CDATA[$V{sl}+1]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="200" splitType="Stretch">
+			<image scaleImage="FillFrame">
+				<reportElement x="36" y="24" width="148" height="149"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{url}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="0" y="4" width="216" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{companyName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+</jasperReport>
