@@ -44,7 +44,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 	public TextField txtItemName, txtDescription;
 	public ComboBox cmbVatCategory, cmbFinishCategory, cmbColor;
 	public OptionGroup ogVatOption, ogItemType;
-	public CheckBox chkOnlineMenu, chkRaw;
+	public CheckBox chkOnlineMenu, chkInventory;
 
 	private ImageUpload Image;
 	public MultiComboBox cmbBranchName, cmbSalesType, cmbPackageName;
@@ -134,8 +134,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 				!tbTxtMainPrice.get(ar).getValue().toString().isEmpty())
 		{
 			String vatRule = ogVatOption.getValue().toString();
-			double vatPecent = hmVat.get(cmbVatCategory.getValue() != null?
-					cmbVatCategory.getValue().toString():"");
+			double vatPecent = hmVat.get(cm.getComboValue(cmbVatCategory));
 			double mainRate = cm.getAmtValue(tbTxtMainPrice.get(ar));
 			double vatAmount = cm.getRound((mainRate*vatPecent)/(vatRule.equals("Inclusive")?(100+vatPecent):100));
 
@@ -248,11 +247,11 @@ public class TabItemMasterInfo extends HorizontalLayout
 
 	private void addEditCategory()
 	{
-		String categoryId = cmbFinishCategory.getValue() != null? cmbFinishCategory.getValue().toString():"";
-		String addEdit = categoryId.isEmpty()? "Add":"Edit";
+		String catId = cm.getComboValue(cmbFinishCategory);
+		String addEdit = catId.isEmpty()? "Add":"Edit";
 		String type = ogItemType.getValue().toString();
 
-		AddEditItemCategory win = new AddEditItemCategory(sessionBean, addEdit, categoryId, type);
+		AddEditItemCategory win = new AddEditItemCategory(sessionBean, addEdit, catId, type);
 		getUI().addWindow(win);
 		win.center();
 		win.setModal(true);
@@ -327,7 +326,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 		grid.addComponent(new Label("Back Color: "), 0, 5);
 		grid.addComponent(cmbColor, 1, 5, 3, 5);
 		loadColors();
-		
+
 		txtDescription = new TextField();
 		txtDescription.setImmediate(true);
 		txtDescription.addStyleName(ValoTheme.TEXTFIELD_TINY);
@@ -344,18 +343,18 @@ public class TabItemMasterInfo extends HorizontalLayout
 		//grid.addComponent(chkOnlineMenu, 0, 5);
 		//grid.setComponentAlignment(chkOnlineMenu, Alignment.MIDDLE_CENTER);
 
-		chkRaw = new CheckBox("Inventory");
-		chkRaw.setImmediate(true);
-		chkRaw.setValue(true);
-		chkRaw.addStyleName(ValoTheme.CHECKBOX_SMALL);
-		chkRaw.setDescription("Save as an inventory item.");
+		chkInventory = new CheckBox("Inventory");
+		chkInventory.setImmediate(true);
+		chkInventory.setValue(true);
+		chkInventory.addStyleName(ValoTheme.CHECKBOX_SMALL);
+		chkInventory.setDescription("Save as an inventory item.");
 
 		Label lblRaw = new Label(" ");
 		lblRaw.setWidth("20px");
 
 		CssLayout cssRawCat = new CssLayout();
 		cssRawCat.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-		cssRawCat.addComponents(chkOnlineMenu, lblRaw, chkRaw);
+		cssRawCat.addComponents(chkOnlineMenu, lblRaw, chkInventory);
 		grid.addComponent(cssRawCat, 0, 7, 4, 7);
 
 		group = new CssLayout();
@@ -370,7 +369,6 @@ public class TabItemMasterInfo extends HorizontalLayout
 		cmbFinishCategory.setDescription("Select one item to edit");
 		cmbFinishCategory.setRequired(true);
 		cmbFinishCategory.setRequiredError("This field is required.");
-		cmbFinishCategory.setNullSelectionAllowed(false);
 		Label lblc = new Label("Menu Category: ");
 		lblc.setWidth("-1px");
 		grid.addComponent(lblc, 4, 0);
@@ -400,7 +398,6 @@ public class TabItemMasterInfo extends HorizontalLayout
 		cmbVatCategory.setWidth("50%");
 		cmbVatCategory.setRequired(true);
 		cmbVatCategory.setRequiredError("This field is required.");
-		cmbVatCategory.setNullSelectionAllowed(false);
 		lbl = new Label("VAT Category: ");
 		lbl.setWidth("-1px");
 		grid.addComponent(lbl, 4, 2);
@@ -437,30 +434,30 @@ public class TabItemMasterInfo extends HorizontalLayout
 		cmbColor.addItem("#6da8ff");
 		cmbColor.setItemIcon("#6da8ff", new ThemeResource("../dashboard/colors/6da8ff.gif"));
 		cmbColor.setItemCaption("#6da8ff", "Blue");
-		
+
 		cmbColor.addItem("#1a1a1a");
 		cmbColor.setItemIcon("#1a1a1a", new ThemeResource("../dashboard/colors/1a1a1a.gif"));
 		cmbColor.setItemCaption("#1a1a1a", "Black");
-		
+
 		cmbColor.addItem("#24b600");		cmbColor.setItemIcon("#24b600", new ThemeResource("../dashboard/colors/24b600.gif"));
 		cmbColor.setItemCaption("#24b600", "Green");
-		
+
 		cmbColor.addItem("#9200b6");
 		cmbColor.setItemIcon("#9200b6", new ThemeResource("../dashboard/colors/9200b6.gif"));
 		cmbColor.setItemCaption("#9200b6", "Purple");
-		
+
 		cmbColor.addItem("#d324ff");
 		cmbColor.setItemIcon("#d324ff", new ThemeResource("../dashboard/colors/d324ff.gif"));
 		cmbColor.setItemCaption("#d324ff", "Pink");
-		
+
 		cmbColor.addItem("#db0083");
 		cmbColor.setItemIcon("#db0083", new ThemeResource("../dashboard/colors/db0083.gif"));
 		cmbColor.setItemCaption("#db0083", "Deep Pink");
-		
+
 		cmbColor.addItem("#ff0000");
 		cmbColor.setItemIcon("#ff0000", new ThemeResource("../dashboard/colors/ff0000.gif"));
 		cmbColor.setItemCaption("#ff0000", "Red");
-		
+
 		cmbColor.addItem("#ff9900");
 		cmbColor.setItemIcon("#ff9900", new ThemeResource("../dashboard/colors/ff9900.gif"));
 		cmbColor.setItemCaption("#ff9900", "Orange");
@@ -684,7 +681,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 
 	private void fileCopy(String Origin, String Destin) throws IOException
 	{
-		ImageResizer.resize(Origin, Destin, .3);
+		ImageResizer.resize(Origin, Destin, .8);
 		/*try
 		{
 			File f1 = new File(Destin);
@@ -714,18 +711,19 @@ public class TabItemMasterInfo extends HorizontalLayout
 	public void txtClear()
 	{
 		txtItemName.setValue("");
+		txtDescription.setValue("");
 		cmbPackageName.unselectAll();
 		hmPrice.clear();
 		tableClear();
-		cmbPackageName.select("1");
+		//cmbPackageName.select("1");
 	}
 
 	public void tableClear()
 	{
 		tblUnitPriceList.removeAllItems();
 		tbLblPackageId.clear();
-		/*Image.image.removeAllComponents();
-		Image.status.setValue("");*/
+		Image.image.removeAllComponents();
+		Image.status.setValue("");
 	}
 
 	public void getValue(ItemInfoModel iim)
@@ -745,7 +743,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 		iim.setCreatedBy(sessionBean.getUserId());
 		iim.setOnlineMenu(chkOnlineMenu.getValue().booleanValue()? 1:0);
 		iim.setItemColor(cm.getComboValue(cmbColor));
-		iim.setItemRaw(chkRaw.getValue().booleanValue()? 1:0);
+		iim.setItemRaw(chkInventory.getValue().booleanValue()? 1:0);
 		iim.setDescription(txtDescription.getValue().toString().trim());
 
 		//Attachment
@@ -769,6 +767,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 
 		iim.setImagePath(imagePathItem);
 		iim.setItemImage(imageInBytes);
+
 		iim.setUnitRateSql(detailsSql(iim.getItemId()));
 		iim.setUnitRateChange(changes);
 	}
@@ -785,9 +784,11 @@ public class TabItemMasterInfo extends HorizontalLayout
 		cmbColor.setValue(iim.getItemColor());
 		txtDescription.setValue(iim.getDescription());
 
-		chkRaw.setValue(iim.getItemRaw()==1? true:false);
+		chkInventory.setValue(iim.getItemRaw()==1? true:false);
 
 		chkOnlineMenu.setValue(iim.getOnlineMenu()==1? true:false);
+
+		//System.out.println(iim.getImagePath());
 		Image.setImage(iim.getImagePath());
 		editImage = iim.getImagePath();
 

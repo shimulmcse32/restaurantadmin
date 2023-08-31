@@ -67,9 +67,9 @@ public class AddEditFinishedItem extends Window
 			checkModifier();
 		});
 
-		tabItemMaster.chkRaw.addValueChangeListener(event ->
+		tabItemMaster.chkInventory.addValueChangeListener(event ->
 		{
-			boolean chk = tabItemMaster.chkRaw.getValue().booleanValue();
+			boolean chk = tabItemMaster.chkInventory.getValue().booleanValue();
 			tabItemInventory.setEnabled(chk);
 		});
 
@@ -77,7 +77,7 @@ public class AddEditFinishedItem extends Window
 
 		//Set default size
 		tabItemMaster.chkOnlineMenu.setValue(true);
-		tabItemMaster.chkRaw.setValue(true);
+		tabItemMaster.chkInventory.setValue(true);
 		tabItemMaster.cmbPackageName.select("1");
 
 		if (flag.equals("Edit"))
@@ -220,7 +220,7 @@ public class AddEditFinishedItem extends Window
 					try
 					{
 						ItemInfoModel iim = new ItemInfoModel();
-						String itemIdN = flag.equals("Add")?iig.getItemId():itemId;
+						String itemIdN = flag.equals("Add")? iig.getItemId():itemId;
 						iim.setItemId(itemIdN);
 
 						tabItemMaster.getValue(iim);
@@ -339,8 +339,11 @@ public class AddEditFinishedItem extends Window
 		allComp.add(tabItemMaster.cmbSalesType);
 		allComp.add(tabItemMaster.cmbVatCategory);
 		allComp.add(tabItemMaster.ogVatOption);
+		allComp.add(tabItemMaster.cmbColor);
+		allComp.add(tabItemMaster.txtDescription);
 		allComp.add(tabItemMaster.chkOnlineMenu);
-		allComp.add(tabItemMaster.chkRaw);
+		allComp.add(tabItemMaster.chkInventory);
+
 		allComp.add(tabItemInventory.ogRawItemType);
 		allComp.add(tabItemInventory.cmbRawCategory);
 		allComp.add(tabItemInventory.cmbRawUnit);
@@ -363,5 +366,6 @@ public class AddEditFinishedItem extends Window
 		tabItemMaster.txtClear();
 		tabItemAddModif.txtClear();
 		tabItemProfile.tableClear();
+		tabItemInventory.txtClear();
 	}
 }

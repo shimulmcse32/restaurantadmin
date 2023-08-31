@@ -120,7 +120,7 @@ public class TabItemInventory extends HorizontalLayout
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
 		grid.addComponent(new Label("Type:"), 0, 1);
 		grid.addComponent(ogRawItemType, 1, 1, 3, 1);
-		
+
 		CssLayout groups = new CssLayout();
 		groups.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -130,7 +130,7 @@ public class TabItemInventory extends HorizontalLayout
 		cmbRawCategory.addStyleName(ValoTheme.COMBOBOX_TINY);
 		cmbRawCategory.setInputPrompt("Select Item Category");
 		cmbRawCategory.setDescription("Item Category");
-		cmbRawCategory.setWidth("200px");
+		cmbRawCategory.setWidth("300px");
 		Label lblCa = new Label("Item Category:");
 		lblCa.setWidth("-1px");
 		grid.addComponent(lblCa, 0, 2);
@@ -140,7 +140,7 @@ public class TabItemInventory extends HorizontalLayout
 		btnAddRawCat.setDescription("Add Inventory Category");
 		groups.addComponents(cmbRawCategory, btnAddRawCat);
 		grid.addComponent(groups, 1, 2, 3, 2);
-		
+
 		CssLayout group = new CssLayout();
 		group.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -151,7 +151,7 @@ public class TabItemInventory extends HorizontalLayout
 		cmbRawUnit.addStyleName(ValoTheme.COMBOBOX_TINY);
 		cmbRawUnit.setInputPrompt("Select Item Unit");
 		cmbRawUnit.setDescription("Item Unit");
-		cmbRawUnit.setWidth("150px");
+		cmbRawUnit.setWidth("300px");
 		Label lblRa = new Label("Item Unit:");
 		lblRa.setWidth("-1px");
 		grid.addComponent(lblRa, 0, 3);
@@ -179,10 +179,11 @@ public class TabItemInventory extends HorizontalLayout
 		grid.addComponent(cssCostPrice, 0, 4, 4, 4);*/
 
 		txtCostMargin = new CommaField();
-		txtCostMargin.setWidth("70px");
+		txtCostMargin.setWidth("80px");
 		txtCostMargin.setValue("0");
+		txtCostMargin.setMaxValue(100);
 		txtCostMargin.setImmediate(true);
-		txtCostMargin.setInputPrompt("Cost Margin(%)");
+		txtCostMargin.setInputPrompt("%");
 		txtCostMargin.setDescription("Cost Margin(%)");
 		txtCostMargin.addStyleName(ValoTheme.TEXTFIELD_TINY);
 		grid.addComponent(new Label("Cost Margin(%): "), 0, 4);
@@ -193,8 +194,8 @@ public class TabItemInventory extends HorizontalLayout
 
 	public void getValue(ItemInfoModel iim)
 	{
-		//Raw item information
-		iim.setItemTypeRaw(ogRawItemType.getValue().toString());
+		//Inventory item information
+		iim.setItemTypeRaw(ogRawItemType.getValue() != null? ogRawItemType.getValue().toString():"");
 		iim.setRawCategory(cm.getComboValue(cmbRawCategory));
 		iim.setRawUnit(cm.getComboValue(cmbRawUnit));
 		iim.setCostMargin(cm.getAmtValue(txtCostMargin));
@@ -209,5 +210,13 @@ public class TabItemInventory extends HorizontalLayout
 		cmbRawUnit.setValue(iim.getRawUnit());
 		//txtCostPrice.setValue(iim.getIssueRate());
 		txtCostMargin.setValue(iim.getCostMargin());
+	}
+
+	public void txtClear()
+	{
+		ogRawItemType.setValue(null);
+		cmbRawCategory.setValue(null);
+		cmbRawUnit.setValue(null);
+		txtCostMargin.setValue("");
 	}
 }

@@ -22,8 +22,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String sql = "select vItemId from master.tbFinishedItemInfo"+
-					" where vItemName like '"+ItemName+"' "+edit+"";
+			String sql = "select vItemId from master.tbFinishedItemInfo where vItemName like '"+ItemName+"' "+edit+"";
 			Iterator<?> iter = session.createSQLQuery(sql).list().iterator();
 			if (iter.hasNext())
 			{ ret = true; }
@@ -42,8 +41,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String sql = "select vItemId from master.tbRawItemInfo"+
-					" where vItemName like '"+ItemName+"' "+edit+"";
+			String sql = "select vItemId from master.tbRawItemInfo where vItemName like '"+ItemName+"' "+edit+"";
 			Iterator<?> iter = session.createSQLQuery(sql).list().iterator();
 			if (iter.hasNext())
 			{ ret = true; }
@@ -61,8 +59,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(dbo.funGetNumeric(vItemCode) as int)),"+
-					" 0)+1 from master.tbRawItemInfo";
+			String query = "select isnull(max(cast(dbo.funGetNumeric(vItemCode) as int)), 0)+1 from master.tbRawItemInfo";
 			//System.out.println(query);
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
@@ -104,8 +101,7 @@ public class ItemInfoGateway
 		{
 			if (!ItemCode.isEmpty())
 			{
-				String sql = "select vItemId from master.tbRawItemInfo"+
-						" where vItemCode like '"+ItemCode+"' "+edit+"";
+				String sql = "select vItemId from master.tbRawItemInfo where vItemCode like '"+ItemCode+"' "+edit+"";
 				Iterator<?> iter = session.createSQLQuery(sql).list().iterator();
 				if (iter.hasNext())
 				{ ret = true; }
@@ -124,8 +120,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(SUBSTRING(vItemId, 3, 10) as int)),"+
-					" 0)+1 from master.tbFinishedItemInfo";
+			String query = "select isnull(max(cast(SUBSTRING(vItemId, 3, 10) as int)), 0)+1 from master.tbFinishedItemInfo";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
 			{ maxId = "FI"+iter.next().toString(); }
@@ -143,8 +138,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(SUBSTRING(vItemId, 3, 10) as int)),"+
-					" 0)+1 from master.tbRawItemInfo";
+			String query = "select isnull(max(cast(SUBSTRING(vItemId, 3, 10) as int)), 0)+1 from master.tbRawItemInfo";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
 			{ maxId = "RI"+iter.next().toString(); }
@@ -162,8 +156,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(SUBSTRING(vReceipeId, 2, 10) as int)),"+
-					" 0)+1 from master.tbFinishedReceipe";
+			String query = "select isnull(max(cast(SUBSTRING(vReceipeId, 2, 10) as int)), 0)+1 from master.tbFinishedReceipe";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
 			{ maxId = "C"+iter.next().toString(); }
@@ -181,8 +174,7 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(SUBSTRING(vProfileId, 2, 10) as int)),"+
-					" 0)+1 from master.tbRawItemProfile";
+			String query = "select isnull(max(cast(SUBSTRING(vProfileId, 2, 10) as int)), 0)+1 from master.tbRawItemProfile";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
 			{ maxId = "P"+iter.next().toString(); }
