@@ -108,7 +108,8 @@ public class AddEditBranch extends Window
 
 	private void insertEditData()
 	{
-		MessageBox mb = new MessageBox(getUI(), "Are you sure?", MessageBox.Icon.QUESTION, "Do you want to save information?",
+		MessageBox mb = new MessageBox(getUI(), "Are you sure?",
+				MessageBox.Icon.QUESTION, "Do you want to save information?",
 				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
 				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
 		mb.show(new EventListener()

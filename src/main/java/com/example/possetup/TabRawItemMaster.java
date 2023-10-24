@@ -15,10 +15,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Window.CloseEvent;
-import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
@@ -54,23 +50,14 @@ public class TabRawItemMaster extends HorizontalLayout
 
 	private void addActions()
 	{
-		btnAddCategory.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ addEditCategory(); }
-		});
+		btnAddCategory.addClickListener(event ->
+		{ addEditCategory(); });
 
-		btnAddSupplier.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ addEditSupplier(); }
-		});
+		btnAddSupplier.addClickListener(event ->
+		{ addEditSupplier(); });
 
-		btnAddUnit.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ addEditUnit(); }
-		});
+		btnAddUnit.addClickListener(event ->
+		{ addEditUnit(); });
 
 		loadComboData();
 	}
@@ -87,11 +74,8 @@ public class TabRawItemMaster extends HorizontalLayout
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
 		win.focus();
 
-		win.addCloseListener(new CloseListener()
-		{
-			public void windowClose(CloseEvent e)
-			{ loadSupplier(); }
-		});
+		win.addCloseListener(event ->
+		{ loadSupplier(); });
 	}
 
 	private void addEditCategory()
@@ -105,11 +89,8 @@ public class TabRawItemMaster extends HorizontalLayout
 		win.setModal(true);
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
 		win.focus();
-		win.addCloseListener(new CloseListener()
-		{
-			public void windowClose(CloseEvent e)
-			{ loadCategory(); }
-		});
+		win.addCloseListener(event ->
+		{ loadCategory(); });
 	}
 
 	private void addEditUnit()
@@ -123,11 +104,8 @@ public class TabRawItemMaster extends HorizontalLayout
 		win.setModal(true);
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
 		win.focus();
-		win.addCloseListener(new CloseListener()
-		{
-			public void windowClose(CloseEvent e)
-			{ loadUnit(); }
-		});
+		win.addCloseListener(event ->
+		{ loadUnit(); });
 	}
 
 	private void loadComboData()

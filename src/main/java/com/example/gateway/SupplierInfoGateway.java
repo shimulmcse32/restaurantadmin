@@ -85,7 +85,7 @@ public class SupplierInfoGateway
 					" 0)+1 from master.tbCustomerInfo where vBranchId = '"+branchId+"'";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
-			{ maxId = branchId+"C"+iter.next().toString(); }
+			{ maxId = branchId+"W"+iter.next().toString(); }
 		}
 		catch (Exception ex)
 		{ System.out.print(ex+" branchId"); }

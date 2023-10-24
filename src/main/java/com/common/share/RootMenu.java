@@ -154,7 +154,6 @@ public class RootMenu extends ValoMenuLayout
 		navigator.addView("dashboard", new DashboardSales(sessionBean));
 		navigator.addView("companyInfo#1", new CompanyInfo(sessionBean, "companyInfo"));
 		navigator.addView("branchInfo#1", new BranchInfo(sessionBean, "branchInfo"));
-		//navigator.addView("terminalInfo#1", new TerminalInfo(sessionBean, "terminalInfo"));
 		navigator.addView("userRole#1", new UserRoleInfo(sessionBean, "userRole"));
 		navigator.addView("userInfo#1", new UserInfo(sessionBean, "userInfo"));
 	}
@@ -231,15 +230,12 @@ public class RootMenu extends ValoMenuLayout
 		menu.addComponent(top);
 		//menu.addComponent(createThemeSelect());
 
-		Button showMenu = new Button("Menu", new ClickListener()
+		Button showMenu = new Button("Menu", event ->
 		{
-			public void buttonClick(ClickEvent event)
-			{
-				if (menu.getStyleName().contains("valo-menu-visible"))
-				{ menu.removeStyleName("valo-menu-visible"); }
-				else
-				{ menu.addStyleName("valo-menu-visible"); }
-			}
+			if (menu.getStyleName().contains("valo-menu-visible"))
+			{ menu.removeStyleName("valo-menu-visible"); }
+			else
+			{ menu.addStyleName("valo-menu-visible"); }
 		});
 
 		showMenu.addStyleName(ValoTheme.BUTTON_PRIMARY);

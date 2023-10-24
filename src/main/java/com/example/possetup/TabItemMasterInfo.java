@@ -714,6 +714,8 @@ public class TabItemMasterInfo extends HorizontalLayout
 		txtDescription.setValue("");
 		cmbPackageName.unselectAll();
 		hmPrice.clear();
+		Image.image.removeAllComponents();
+		Image.status.setValue("");
 		tableClear();
 		//cmbPackageName.select("1");
 	}
@@ -722,8 +724,6 @@ public class TabItemMasterInfo extends HorizontalLayout
 	{
 		tblUnitPriceList.removeAllItems();
 		tbLblPackageId.clear();
-		Image.image.removeAllComponents();
-		Image.status.setValue("");
 	}
 
 	public void getValue(ItemInfoModel iim)
@@ -788,18 +788,18 @@ public class TabItemMasterInfo extends HorizontalLayout
 
 		chkOnlineMenu.setValue(iim.getOnlineMenu()==1? true:false);
 
+		setMultiCombo(iim);
+		setValueUnit(iim);
+
 		//System.out.println(iim.getImagePath());
 		Image.setImage(iim.getImagePath());
 		editImage = iim.getImagePath();
-
-		setMultiCombo(iim);
-		setValueUnit(iim);
 	}
 
 	private void setValueUnit(ItemInfoModel iim)
 	{
 		String sql = "select iUnitId, mMainPrice, mFixedCost from master.tbFinishedItemPrice where"+
-				" vItemId = '"+iim.getItemId()+"' and iActive = 1 order by iUnitId";
+				" vItemId = '"+iim.getItemId()+"' and iActive = 1 order by iUnitId asc";
 		//System.out.println(sql);
 		int ar = 0;
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)

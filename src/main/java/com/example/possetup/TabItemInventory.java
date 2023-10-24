@@ -114,7 +114,7 @@ public class TabItemInventory extends HorizontalLayout
 
 		ogRawItemType = new OptionGroup();
 		ogRawItemType.addItem("Raw");
-		ogRawItemType.addItem("Semi-Cooked");
+		//ogRawItemType.addItem("Semi-Cooked");
 		ogRawItemType.select("Raw");
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);

@@ -4,25 +4,20 @@ import java.util.ArrayList;
 
 import com.common.share.CommonMethod;
 import com.common.share.FocusMoveByEnter;
-import com.common.share.MessageBox;
-import com.common.share.MessageBox.ButtonType;
-import com.common.share.MessageBox.EventListener;
 import com.common.share.SessionBean;
 import com.example.gateway.UserInfoGateway;
-import com.example.model.UserInfoModel;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class ForgetPassword extends Window
+public class ForgotPassword extends Window
 {
 	private TextField txtUserName, txtEmail;
 
@@ -31,13 +26,13 @@ public class ForgetPassword extends Window
 	private CommonMethod cm;
 	private UserInfoGateway uig = new UserInfoGateway();
 
-	public ForgetPassword(SessionBean sessionBean)
+	public ForgotPassword(SessionBean sessionBean)
 	{
 		cm = new CommonMethod(sessionBean);
 		this.setCaption("Forget Password");
 		this.setResizable(false);
-		setWidth("300px");
-		setHeight("240px");
+		setWidth("330px");
+		setHeight("230px");
 
 		setContent(buildLayout());
 
@@ -46,11 +41,8 @@ public class ForgetPassword extends Window
 
 	private void addActions()
 	{
-		btnSend.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ addValidation(); }
-		});
+		btnSend.addClickListener(event ->
+		{ addValidation(); });
 
 		focusEnter();
 	}
@@ -88,47 +80,7 @@ public class ForgetPassword extends Window
 
 	private void insertEditData()
 	{
-		MessageBox mb = new MessageBox(getUI(), "Are you sure?", MessageBox.Icon.QUESTION, "Do you want to update information?",
-				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
-				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
-		mb.show(new EventListener()
-		{
-			public void buttonClicked(ButtonType buttonType)
-			{
-				if (buttonType == ButtonType.YES)
-				{
-					try
-					{
-						UserInfoModel uim = new UserInfoModel();
 
-						String userName = txtUserName.getValue().toString().trim();
-						String email = txtEmail.getValue().toString().trim();
-						uim.setUserName(userName);
-						uim.setEmailId(email);
-						uim.setUserId(uig.getForgetUserId(userName, email));
-
-						/*if (uig.insertEditData(uim))
-						{
-							txtClear();
-							cm.showNotification("success", "Successfull!", "All information updated successfully.");
-							cBtn.btnSave.setEnabled(true);
-						}
-						else
-						{
-							cm.showNotification("failure", "Error!", "Couldn't save information.");
-						}*/
-					}
-					catch(Exception ex)
-					{
-						System.out.println(ex);
-					}
-				}
-				else if(buttonType == ButtonType.NO)
-				{
-					btnSend.setEnabled(true);
-				}
-			}
-		});
 	}
 
 	private Component buildLayout()
@@ -137,29 +89,34 @@ public class ForgetPassword extends Window
 		lay.setMargin(true);
 		lay.setSpacing(true);
 		lay.setSizeFull();
+		lay.addStyleName("fields");
 
 		txtUserName = new TextField("Username");
 		txtUserName.setImmediate(true);
-		txtUserName.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+		txtUserName.addStyleName(ValoTheme.TEXTFIELD_TINY);
 		txtUserName.setWidth("100%");
 		txtUserName.setInputPrompt("Username");
 		txtUserName.setRequired(true);
-		txtUserName.setRequiredError("This field is required");
+		txtUserName.setRequiredError("This field is required.");
 
 		txtEmail = new TextField("Email Address");
 		txtEmail.setImmediate(true);
-		txtEmail.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+		txtEmail.addStyleName(ValoTheme.TEXTFIELD_TINY);
 		txtEmail.setWidth("100%");
-		txtEmail.setInputPrompt("sample@mail.com");
+		txtEmail.setInputPrompt("sample@email.com");
 		txtEmail.setRequired(true);
-		txtEmail.setRequiredError("This field is required");
+		txtEmail.setRequiredError("This field is required.");
+		txtEmail.addValidator(new EmailValidator("Invalid e-mail address {0}"));
 		lay.addComponents(txtUserName, txtEmail);
 
-		btnSend = new Button();
-		btnSend.setIcon(FontAwesome.SEND_O);
-		btnSend.setStyleName(ValoTheme.BUTTON_SMALL);
-		btnSend.setDescription("Send");
+		btnSend = new Button("Send Credentials");
+		btnSend.setIcon(FontAwesome.ENVELOPE);
+		btnSend.setStyleName(ValoTheme.BUTTON_TINY);
+		btnSend.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		btnSend.setWidth("100%");
+		btnSend.setDescription("Send Credentials");
 		lay.addComponent(btnSend);
+
 		lay.setComponentAlignment(btnSend, Alignment.BOTTOM_CENTER);
 
 		return lay;

@@ -314,8 +314,8 @@ public class UserInfoGateway
 					sessionBean.setModuleId("1, 2, 3, 4, 5");//Fixed module id
 					sessionBean.setUserName(element[10].toString());
 					sessionBean.setFullName(element[11].toString());
-					sessionBean.setIsAdmin((element[12].toString().equals("1")?true:false));
-					sessionBean.setIsSuperAdmin((element[12].toString().equals("3")?true:false));
+					sessionBean.setIsAdmin((element[12].toString().equals("2")? true:false));
+					sessionBean.setIsSuperAdmin((element[12].toString().equals("2")? true:false));
 					sessionBean.setUserType("");
 					sessionBean.setVatRegNo(element[14].toString());
 					sessionBean.setSurName(element[15].toString());

@@ -2,7 +2,9 @@ package com.common.share;
 
 import java.util.Iterator;
 
-import com.example.config.ForgetPassword;
+import javax.servlet.http.Cookie;
+
+import com.example.config.ForgotPassword;
 import com.example.gateway.UserInfoGateway;
 import com.example.main.MainUI;
 import com.example.model.UserInfoModel;
@@ -10,14 +12,15 @@ import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Responsive;
+import com.vaadin.server.VaadinService;
 import com.vaadin.shared.Position;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.PasswordField;
@@ -32,11 +35,13 @@ public class LoginView extends VerticalLayout
 	private TextField txtUserName;
 	private PasswordField txtPassword;
 	private Button btnSignIn, btnForgetPass;
+	private CheckBox chkRememberme;
 	private MainUI ui;
 	private UserInfoGateway uig = new UserInfoGateway();
 	private SessionBean sessionBean = new SessionBean();
 	private CommonMethod cm;
 
+	private EncryptDecrypt ende = new EncryptDecrypt();
 	public LoginView(MainUI ui)
 	{
 		this.ui = ui;
@@ -61,13 +66,39 @@ public class LoginView extends VerticalLayout
 		btnForgetPass.addClickListener(event -> forgetPassword());
 
 		cmbBranchName.addValueChangeListener(event -> txtUserName.focus());
+
+		setCookieValue();
+	}
+
+	private void setCookieValue()
+	{
+		try
+		{
+			Cookie company = getCookieByName("company");
+			if (company != null)
+			{ cmbBranchName.setValue(ende.decrypt(company.getValue())); }
+
+			Cookie username = getCookieByName("username");
+			if (username != null)
+			{ txtUserName.setValue(ende.decrypt(username.getValue())); }
+
+			Cookie password = getCookieByName("password");
+			if (password != null)
+			{ txtPassword.setValue(ende.decrypt(password.getValue())); }
+
+			Cookie remember = getCookieByName("remember");
+			if (remember != null)
+			{ chkRememberme.setValue(ende.decrypt(remember.getValue()).equals("true")); }
+		}
+		catch (Exception e)
+		{ System.out.println(e); }
 	}
 
 	private void forgetPassword()
 	{
 		btnSignIn.setEnabled(false);
 		btnForgetPass.setEnabled(false);
-		ForgetPassword win = new ForgetPassword(sessionBean);
+		ForgotPassword win = new ForgotPassword(sessionBean);
 		getUI().addWindow(win);
 		win.center();
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
@@ -125,6 +156,7 @@ public class LoginView extends VerticalLayout
 			}
 			else*/
 			{
+				sessionRemember();
 				new RootMenu(ui, sessionBean);
 			}
 		}
@@ -173,7 +205,7 @@ public class LoginView extends VerticalLayout
 		cmbBranchName.setIcon(FontAwesome.CAB);
 		cmbBranchName.setRequiredError("This field is required.");
 		cmbBranchName.setFilteringMode(FilteringMode.CONTAINS);
-		cmbBranchName.setStyleName(ValoTheme.COMBOBOX_SMALL);
+		cmbBranchName.setStyleName(ValoTheme.COMBOBOX_TINY);
 		cmbBranchName.setInputPrompt("Select branch name");
 		branchDataLoad();
 
@@ -183,7 +215,7 @@ public class LoginView extends VerticalLayout
 		txtUserName.setRequired(true);
 		txtUserName.setRequiredError("This field is required.");
 		txtUserName.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
-		txtUserName.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+		txtUserName.addStyleName(ValoTheme.TEXTFIELD_TINY);
 
 		txtPassword = new PasswordField("Password");
 		txtPassword.setIcon(FontAwesome.LOCK);
@@ -191,45 +223,27 @@ public class LoginView extends VerticalLayout
 		txtPassword.setRequired(true);
 		txtPassword.setRequiredError("This field is required.");
 		txtPassword.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
-		txtPassword.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+		txtPassword.addStyleName(ValoTheme.TEXTFIELD_TINY);
+
+		chkRememberme = new CheckBox("Remember me");
+		chkRememberme.setImmediate(true);
 
 		btnSignIn = new Button("Sign In");
 		btnSignIn.setIcon(FontAwesome.SIGN_IN);
 		btnSignIn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		btnSignIn.addStyleName(ValoTheme.BUTTON_SMALL);
+		btnSignIn.addStyleName(ValoTheme.BUTTON_TINY);
 		btnSignIn.setClickShortcut(KeyCode.ENTER);
 		btnSignIn.focus();
 
-		fields.addComponents(cmbBranchName, txtUserName, txtPassword, btnSignIn, forgetPass());
+		btnForgetPass = new Button("Forgot password?");
+		btnForgetPass.setIcon(FontAwesome.KEY);
+		btnForgetPass.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
+		btnForgetPass.addStyleName(ValoTheme.BUTTON_TINY);
+
+		fields.addComponents(cmbBranchName, txtUserName, txtPassword, chkRememberme, btnSignIn, btnForgetPass);
 		fields.setComponentAlignment(btnSignIn, Alignment.BOTTOM_LEFT);
 
-		/* signin.addClickListener(new ClickListener() {
-            @Override
-            public void buttonClick(final ClickEvent event) {
-                DashboardEventBus.post(new UserLoginRequestedEvent(username
-                        .getValue(), password.getValue()));
-            }
-        });*/
 		return fields;
-	}
-
-	private Component forgetPass()
-	{
-		GridLayout lay = new GridLayout(2, 1);
-		lay.setSpacing(true);
-
-		Label forget = new Label("Forget password?");
-		forget.addStyleName(ValoTheme.LABEL_COLORED);
-		lay.addComponent(forget, 0, 0);
-
-		btnForgetPass = new Button();
-		btnForgetPass.setIcon(FontAwesome.SEND);
-		btnForgetPass.setDescription("Click Here");
-		btnForgetPass.setStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
-		btnForgetPass.setStyleName(ValoTheme.BUTTON_TINY);
-		lay.addComponent(btnForgetPass, 1, 0);
-
-		return lay;
 	}
 
 	private void branchDataLoad()
@@ -246,6 +260,53 @@ public class LoginView extends VerticalLayout
 			{ value = element[0].toString(); }
 		}
 		cmbBranchName.setValue(value);
+	}
+
+	private void sessionRemember()
+	{
+		String company = "", username = "", password = "", remember = "";
+		if (chkRememberme.getValue().booleanValue())
+		{
+			company = cm.getComboValue(cmbBranchName);
+			username = txtUserName.getValue().toString().trim();
+			password = txtPassword.getValue().toString().trim();
+			remember = chkRememberme.getValue().toString();
+			setCookieByName("company", company);
+			setCookieByName("username", username);
+			setCookieByName("password", password);
+			setCookieByName("remember", remember);
+		}
+		else
+		{
+			setCookieByName("company", "");
+			setCookieByName("username", "");
+			setCookieByName("password", "");
+			setCookieByName("remember", "");
+		}
+	}
+
+	private void setCookieByName(String name, String value)
+	{
+		try
+		{
+			Cookie myCookie = new Cookie(name, ende.encrypt(value));// Create a new cookie
+			myCookie.setMaxAge(32000000);// Make cookie expire in more than 1 year
+			myCookie.setPath(VaadinService.getCurrentRequest().getContextPath());// Set the cookie path.
+			VaadinService.getCurrentResponse().addCookie(myCookie);// Save cookie
+		}
+		catch(Exception e2)
+		{ System.out.println(e2); }
+	}
+
+	private Cookie getCookieByName(String name)
+	{
+		Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();// Fetch all cookies from the request
+		for (Cookie cookie : cookies)// Iterate to find cookie by its name
+		{
+			if (name.equals(cookie.getName()))
+			{ return cookie; }
+		}
+		return null;
 	}
 
 	private Component buildLabels()
