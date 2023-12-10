@@ -157,16 +157,14 @@ public class CommonMethod implements Serializable
 	public double getAmtValue(Label field)
 	{
 		double value = 0;
-		value = Double.parseDouble(field.getValue().toString().trim().isEmpty()?"0":
-			field.getValue().toString().replaceAll(",", "").trim());
+		value = Double.parseDouble(field.getValue().toString().trim().isEmpty()? "0":field.getValue().toString().replaceAll(",", "").trim());
 		return value;
 	}
 
 	public double getAmtValue(CommaField field)
 	{
 		double value = 0;
-		value = Double.parseDouble(field.getValue().toString().trim().isEmpty()?"0":
-			field.getValue().toString().replaceAll(",", "").trim());
+		value = Double.parseDouble(field.getValue().toString().trim().isEmpty()? "0":field.getValue().toString().replaceAll(",", "").trim());
 		return value;
 	}
 

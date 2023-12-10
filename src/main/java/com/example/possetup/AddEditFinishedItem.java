@@ -265,7 +265,7 @@ public class AddEditFinishedItem extends Window
 			{ cm.showNotification("failure", "Error!", "Couldn't find information."); }
 		}
 		catch(Exception ex)
-		{ System.out.println(ex); }
+		{ System.out.println("select edit: "+ex); }
 	}
 
 	private void setEditModifData()

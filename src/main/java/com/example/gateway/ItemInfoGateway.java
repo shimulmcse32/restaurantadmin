@@ -451,9 +451,8 @@ public class ItemInfoGateway
 	public boolean activeInactiveDataRaw(String ItemId, String userId)
 	{
 		boolean ret = false;
-		String sql = "update master.tbRawItemInfo set iActive = (select case when iActive = 1"+
-				" then 0 else 1 end from master.tbRawItemInfo where vItemId = '"+ItemId+"'),"+
-				" vModifiedBy = '"+userId+"', dModifiedDate = getdate() where vItemId = '"+ItemId+"'";
+		String sql = "update master.tbRawItemInfo set iActive = (select case when iActive = 1 then 0 else 1 end from master.tbRawItemInfo"+
+				" where vItemId = '"+ItemId+"'), vModifiedBy = '"+userId+"', dModifiedDate = getdate() where vItemId = '"+ItemId+"'";
 		Session session = SessionFactoryUtil.getInstance().openSession();
 		Transaction tx = session.beginTransaction();
 		try
@@ -478,15 +477,13 @@ public class ItemInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String sql = "select vItemType, iInventory, vBranchIds, vItemName, vUnitIds, vCategoryId, vSalesTypeIds,"+
-					" vVatCatId, vVatOption, vItemNameAr, vItemNameKitchen, vModifierId, vBarcode, vCompanyId,"+
-					" vSupplierIds, vImagePath, iOnlineMenu, vItemColor, vDescription from master.tbFinishedItemInfo"+
-					" where vItemId = :itemId";
+			String sql = "select vItemType, iInventory, vBranchIds, vItemName, vUnitIds, vCategoryId, vSalesTypeIds, vVatCatId, vVatOption,"+
+					" vItemNameAr, vItemNameKitchen, vModifierId, vBarcode, vCompanyId, vSupplierIds, vImagePath, iOnlineMenu, vItemColor,"+
+					" vDescription from master.tbFinishedItemInfo where vItemId = :itemId";
 			//System.out.println(sql);
 			SQLQuery select = session.createSQLQuery(sql);
 			select.setParameter("itemId", idFind);
-
-			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
+			for (Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				ret = true;
 				Object[] element = (Object[]) iter.next();
@@ -531,8 +528,7 @@ public class ItemInfoGateway
 					" master.tbRawItemInfo where vItemId = :itemId";
 			SQLQuery select = session.createSQLQuery(sql);
 			select.setParameter("itemId", itemId);
-
-			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
+			for (Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				ret = true;
 				Object[] element = (Object[]) iter.next();
@@ -560,7 +556,7 @@ public class ItemInfoGateway
 					" vUnitId, mIssueRate, mCostMargin, vItemType from master.tbRawItemInfo where vItemId = :itemId";
 			SQLQuery select = session.createSQLQuery(sql);
 			select.setParameter("itemId", itemId);
-			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
+			for (Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				ret = true;
 				Object[] element = (Object[]) iter.next();

@@ -205,11 +205,14 @@ public class TabItemInventory extends HorizontalLayout
 
 	public void setValue(ItemInfoModel iim)
 	{
-		ogRawItemType.setValue(iim.getItemTypeRaw());
-		cmbRawCategory.setValue(iim.getRawCategory());
-		cmbRawUnit.setValue(iim.getRawUnit());
-		//txtCostPrice.setValue(iim.getIssueRate());
-		txtCostMargin.setValue(iim.getCostMargin());
+		if (iim.getItemRaw() == 1)
+		{
+			ogRawItemType.setValue(iim.getItemTypeRaw().isEmpty()? "Raw":iim.getItemTypeRaw().isEmpty());
+			cmbRawCategory.setValue(iim.getRawCategory());
+			cmbRawUnit.setValue(iim.getRawUnit());
+			//txtCostPrice.setValue(iim.getIssueRate());
+			txtCostMargin.setValue(iim.getCostMargin());
+		}
 	}
 
 	public void txtClear()
