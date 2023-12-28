@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.report.operation;
+package com.example.posreport;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class SalesReport extends VerticalLayout implements View
+public class SalesClosingReport extends VerticalLayout implements View
 {
 	private SessionBean sessionBean;
 
@@ -51,21 +51,18 @@ public class SalesReport extends VerticalLayout implements View
 	private PopupDateField txtFromDateClose, txtToDateClose;
 	private OptionGroup ogInvoiceTypeClose, ogReportFormatClose, ogInvoiceFrom;
 	private ComboBox cmbBranchClose, cmbUserClose;
-	private Panel panelClose;
 
 	//Sales report invoice
 	private CommonButton cBtnSales = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateSales, txtToDateSales;
 	private OptionGroup ogInvoiceTypeSales, ogReportTypeSales, ogInvoiceFromS;
 	private ComboBox cmbBranchSales, cmbUserSales, cmbSalesTypeSales;
-	private Panel panelSales;
 
 	//Sales report menu
 	private CommonButton cBtnMenu = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateMenu, txtToDateMenu;
 	private OptionGroup ogInvoiceFromM;
 	private ComboBox cmbBranchMenu, cmbSalesTypeMenu;
-	private Panel panelMenu;
 
 	//Sales report invoice terminal wise
 	private CommonButton cBtnTerminal = new CommonButton("", "", "", "", "", "", "", "View", "");
@@ -73,11 +70,10 @@ public class SalesReport extends VerticalLayout implements View
 	private OptionGroup ogInvoiceTypeTerminal, ogReportTypeTerminal, ogInvoiceFromT;
 	private ComboBox cmbBranchTerminal, cmbUserTerminal, cmbSalesTypeTerminal;
 	private MultiComboBox cmbTerminal;
-	private Panel panelTerminal;
 
 	private CommonMethod cm;
 
-	public SalesReport(SessionBean sessionBean, String formId)
+	public SalesClosingReport(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
 		cm = new CommonMethod(this.sessionBean);
@@ -256,7 +252,7 @@ public class SalesReport extends VerticalLayout implements View
 
 	private Panel addClosingReport()
 	{
-		panelClose = new Panel("Closing Report :: "+sessionBean.getCompanyName()+
+		Panel panelClose = new Panel("Closing Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -456,7 +452,7 @@ public class SalesReport extends VerticalLayout implements View
 
 	private Panel addSalesReport()
 	{
-		panelSales = new Panel("Sales Report (Invoices) :: "+sessionBean.getCompanyName()+
+		Panel panelSales = new Panel("Sales Report (Invoices) :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -637,7 +633,7 @@ public class SalesReport extends VerticalLayout implements View
 
 	private Panel addSalesMenu()
 	{
-		panelMenu = new Panel("Sales Report (Items) :: "+sessionBean.getCompanyName()+
+		Panel panelMenu = new Panel("Sales Report (Items) :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -833,7 +829,7 @@ public class SalesReport extends VerticalLayout implements View
 
 	private Panel addTerminalReport()
 	{
-		panelTerminal = new Panel("Terminal Wise Sales Report (Invoices) :: "+sessionBean.getCompanyName()+
+		Panel panelTerminal = new Panel("Terminal Wise Sales Report (Invoices) :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);

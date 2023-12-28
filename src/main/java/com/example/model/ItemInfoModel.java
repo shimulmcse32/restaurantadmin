@@ -6,7 +6,7 @@ public class ItemInfoModel
 	itemName, itemNameArabic, kitchenName, unitIds, supplierIds, itemColor, description, modifierSql,
 	createdBy, vatCategoryId, vatOption, unitRateSql, itemType, imagePath, salesTypes,
 	receipeSql, rawCategory, rawUnit, itemTypeRaw;
-	private Double vatPercent, minLevel, maxLevel, reOrderLevel, costMargin, issueRate;
+	private Double vatPercent, minLevel, maxLevel, reOrderLevel, costMargin, costPrice;
 	private int itemRaw, onlineMenu;
 	private boolean unitRateChange, modifierSqlChange, recipeSqlChange;
 	private byte[] itemImage;
@@ -103,7 +103,7 @@ public class ItemInfoModel
 	{ this.itemColor = itemColor; }
 	public String getItemColor()
 	{ return itemColor; }
-	
+
 	public void setDescription(String description)
 	{ this.description = description; }
 	public String getDescription()
@@ -139,16 +139,16 @@ public class ItemInfoModel
 	public Double getReOrderLevel()
 	{ return reOrderLevel; }
 
-	public void setIssueRate(double issueRate)
-	{ this.issueRate = issueRate; }
-	public Double getIssueRate()
-	{ return issueRate; }
+	public void setCostPrice(double costPrice)
+	{ this.costPrice = costPrice; }
+	public Double getCostPrice()
+	{ return costPrice; }
 
 	public void setCostMargin(double costMargin)
 	{ this.costMargin = costMargin; }
 	public Double getCostMargin()
 	{ return costMargin; }
-	
+
 	public void setOnlineMenu(int onlineMenu)
 	{ this.onlineMenu = onlineMenu; }
 	public int getOnlineMenu()

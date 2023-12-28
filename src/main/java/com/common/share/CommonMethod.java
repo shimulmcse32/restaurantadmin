@@ -312,9 +312,9 @@ public class CommonMethod implements Serializable
 			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				Object[] element = (Object[]) iter.next();
-				insert = (element[0].toString().equals("1")?true:false);
-				delete = (element[1].toString().equals("1")?true:false);
-				update = (element[2].toString().equals("1")?true:false);
+				insert = (element[0].toString().equals("1")? true:false);
+				delete = (element[1].toString().equals("1")? true:false);
+				update = (element[2].toString().equals("1")? true:false);
 				//System.out.println(element[0].toString()+" "+formId);
 				//preview = false;
 			}

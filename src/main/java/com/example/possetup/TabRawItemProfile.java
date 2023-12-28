@@ -32,7 +32,7 @@ import com.vaadin.ui.themes.ValoTheme;
 public class TabRawItemProfile extends HorizontalLayout
 {
 	private SessionBean sessionBean;
-	private String flag = "", size1 = "", receipeId = "";
+	private String flag = "", receipeId = "";
 
 	private Table tblProfileList;
 	public ArrayList<Label> tbLblPrfileId = new ArrayList<Label>();
@@ -143,8 +143,8 @@ public class TabRawItemProfile extends HorizontalLayout
 			tbTxtSize1Qty.get(ar).setImmediate(true);
 			tbTxtSize1Qty.get(ar).addStyleName(ValoTheme.TEXTFIELD_TINY);
 			tbTxtSize1Qty.get(ar).setInputPrompt("Quantity");
-			tbTxtSize1Qty.get(ar).setRequired(size1.isEmpty()?false:true);
-			tbTxtSize1Qty.get(ar).setRequiredError(size1.isEmpty()?"":"This field is required.");
+			tbTxtSize1Qty.get(ar).setRequired(true);
+			tbTxtSize1Qty.get(ar).setRequiredError("This field is required.");
 			tbTxtSize1Qty.get(ar).addValueChangeListener(new ValueChangeListener()
 			{
 				public void valueChange(ValueChangeEvent event)
@@ -197,7 +197,7 @@ public class TabRawItemProfile extends HorizontalLayout
 	private void loadComboData(int ar)
 	{
 		String sql = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iCode from"+
-				" master.tbRawItemInfo where /*vItemType = 'Raw' and*/ iActive = 1 order by iCode,"+
+				" master.tbRawItemInfo where vItemType = 'Raw' and iActive = 1 order by iCode,"+
 				" vItemName", caption = "";
 		for(Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
@@ -253,50 +253,6 @@ public class TabRawItemProfile extends HorizontalLayout
 			}
 		}
 		return ret;
-	}
-
-	public void setTableColumn(String sizes)
-	{
-		int i = 0;
-		size1 = "";
-
-		//Clear table header
-		tblProfileList.setColumnHeader("Size 1", "Size 1");
-
-		String sql = "select uni.iUnitId, uni.vUnitName from dbo.Split('"+sizes+"') fun, master.tbUnitInfo"+
-				" uni where fun.Item = uni.iUnitId and vUnitType = 'Finish' order by iUnitId";
-		for(Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-		{
-			Object[] element = (Object[]) iter.next();
-
-			if (i == 0)
-			{
-				size1 = element[0].toString();
-				tblProfileList.setColumnHeader("Size 1", element[1].toString());
-				tblProfileList.setColumnHeader("Size1Id", element[1].toString()+"Id");
-			}
-			i++;
-		}
-		setSizeIdToTable();
-	}
-
-	private void setSizeIdToTable()
-	{
-		for(int i=0; i<tbCmbItemName.size(); i++)
-		{
-			clearTableData(i);
-			if (!size1.isEmpty())
-			{
-				tbTxtSize1Qty.get(i).setRequired(true);
-				tbTxtSize1Qty.get(i).setRequiredError("This field is required.");
-			}
-		}
-	}
-
-	private void clearTableData(int i)
-	{
-		tbTxtSize1Qty.get(i).setRequired(false);
-		tbTxtSize1Qty.get(i).setRequiredError("");
 	}
 
 	public void getValue(ItemInfoModel iim, String flag)

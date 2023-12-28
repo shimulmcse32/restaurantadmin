@@ -62,16 +62,15 @@ public class CustomerInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogFilter;
 
 	private CommonMethod cm;
 	private SupplierInfoGateway sig = new SupplierInfoGateway();
+	private String formId;
 
 	//Report panel
-	private Panel panelReport;
 	private CommonButton cBtnView = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private ComboBox cmbCustomer;
 	private OptionGroup ogReportFormat;
@@ -79,14 +78,12 @@ public class CustomerInformation extends VerticalLayout implements View
 	public CustomerInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorisation
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReportPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -127,7 +124,7 @@ public class CustomerInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Customer List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Customer List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -337,7 +334,7 @@ public class CustomerInformation extends VerticalLayout implements View
 	//Report Panel Start
 	private Panel addReportPanel()
 	{
-		panelReport = new Panel("Customer Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Customer Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -458,5 +455,11 @@ public class CustomerInformation extends VerticalLayout implements View
 	}
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); loadCustomer(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+		loadCustomer();
+	}
 }

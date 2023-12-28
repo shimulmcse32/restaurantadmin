@@ -17,8 +17,6 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
@@ -30,7 +28,6 @@ public class TransactionCancel extends Window
 	private TextArea txtReason;
 
 	private CommonButton cBtn = new CommonButton("", "Save", "", "", "", "", "", "View", "Exit");
-	private TransAppCanGateway tacg = new TransAppCanGateway();
 	private ArrayList<Component> allComp = new ArrayList<Component>();
 	private CommonMethod cm;
 
@@ -51,17 +48,12 @@ public class TransactionCancel extends Window
 
 	private void addActions()
 	{
-		cBtn.btnSave.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ addValidation(); }
-		});
+		cBtn.btnSave.addClickListener(event ->
+		{ addValidation(); });
 
-		cBtn.btnExit.addClickListener(new ClickListener()
-		{
-			public void buttonClick(ClickEvent event)
-			{ close(); }
-		});
+		cBtn.btnExit.addClickListener(event ->
+		{ close(); });
+
 		focusEnter();
 	}
 
@@ -104,7 +96,9 @@ public class TransactionCancel extends Window
 
 	private void saveInformation()
 	{
+		TransAppCanGateway tacg = new TransAppCanGateway();
 		TransactionApprovedCancelModel tacm = new TransactionApprovedCancelModel();
+
 		tacm.setTransactionId(primaryId);
 		tacm.setCancelReason(txtReason.getValue().toString().trim());
 		tacm.setCancelBy(sessionBean.getUserId());

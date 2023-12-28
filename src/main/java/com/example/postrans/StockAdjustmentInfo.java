@@ -36,6 +36,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupDateField;
@@ -65,7 +66,6 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -73,25 +73,23 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private StockAdjustmentGateway sag = new StockAdjustmentGateway();
+	private String formId;
 
 	//Adjustment report
-	private Panel panelReport;
-	private PopupDateField txtReportFromDate, txtReportToDate;
-	private MultiComboBox cmbItemNameForReport;
+	private PopupDateField txtFromDateReport, txtToDateReport;
+	private MultiComboBox cmbItemNameReport, cmbAdjTypeReport;
 	private CommonButton cBtnV = new CommonButton("", "", "", "", "", "", "", "View", "");
 
 	public StockAdjustmentInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReport());
 
-		cBtn.btnNew.setEnabled(cm.insert);
 		addActions();
 	}
 
@@ -110,13 +108,14 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 		{ loadTableInfo(); });
 
 		cBtnV.btnPreview.addClickListener(event ->
-		{ addValidation(); });
+		{ addValidationRpt(); });
 
-		txtReportFromDate.addValueChangeListener(event ->
+		txtFromDateReport.addValueChangeListener(event ->
 		{ loadItemReport(); });
 
-		txtReportToDate.addValueChangeListener(event ->
+		txtToDateReport.addValueChangeListener(event ->
 		{ loadItemReport(); });
+
 		loadStatus();
 	}
 
@@ -124,7 +123,6 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 	{
 		String sqlStatus = "select vStatusId, vStatusName from master.tbAllStatus where iActive = 1 and"+
 				" vFlag = 'st' Order by vStatusName";
-
 		for (Iterator<?> iter = cm.selectSql(sqlStatus).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -146,68 +144,9 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
 			cBtn.btnNew.setEnabled(true);
 			loadTableInfo();
+			loadItemReport();
 		});
 	}
-
-	private void loadTableInfo()
-	{
-		String search = "%"+txtSearch.getValue().toString()+"%";
-		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
-		String toDate = cm.dfDb.format(txtToDate.getValue());
-		String branchId = sessionBean.getBranchId();
-		tableClear();
-		int i = 0;
-		try
-		{
-			String sql = "select sa.vAdjustId, sa.vAdjustNo, sa.dAdjustDate, sa.vRemarks, (select isnull(sum(mAmount), 0) from"+
-					" trans.tbStockAdjustmentDetails where vAdjustId = sa.vAdjustId)Amount, (select isnull(count(vItemId), 0) from"+
-					" trans.tbStockAdjustmentDetails where vAdjustId = sa.vAdjustId)item, sa.iActive, sa.vStatusId, ast.vStatusName"+
-					" from trans.tbStockAdjustmentInfo sa, master.tbAllStatus ast where vAdjustNo like '"+search+"' and sa.vStatusId"+
-					" = ast.vStatusId and sa.dAdjustDate between '"+fromDate+"' and '"+toDate+"' and sa.vStatusId like '"+status+"'"+
-					" and sa.vBranchId like '"+branchId+"' order by sa.dAdjustDate, sa.iAutoId desc";
-			//System.out.println(sql);
-			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-			{
-				Object[] element = (Object[]) iter.next();
-
-				if (tbLblAdjustId.size() <= i)
-				{ tableRowAdd(i); }
-
-				tbLblAdjustId.get(i).setValue(element[0].toString());
-				tbLblAdjustNo.get(i).setValue(element[1].toString());
-				tbLblAdjustDate.get(i).setValue(cm.dfBd.format(element[2]));
-				tbLblRemarks.get(i).setValue(element[3].toString());
-				tbLblTotalItem.get(i).setValue(element[5].toString());
-				tbLblStatus.get(i).setValue(element[8].toString());
-				tbLblAmount.get(i).setValue(cm.setComma(Double.parseDouble(element[4].toString())));
-				tbChkActive.get(i).setValue((element[6].toString().equals("1")? true:false));
-				tbChkActive.get(i).setEnabled(false);
-				if (element[7].toString().equals("S6"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Approve");
-				}
-				if (element[7].toString().equals("S7"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Cancel");
-					tbCmbAction.get(i).removeItem("Approve");
-				}
-				i++;
-			}
-			tblAdjustList.nextPage();
-			tblAdjustList.previousPage();
-			if (i == 0)
-			{ cm.showNotification("warning", "Sorry!", "No data found."); }
-			totalAmount();
-		}
-		catch (Exception e)
-		{ System.out.println(e); }
-	}
-
-	private void tableClear()
-	{ cm.tableClear(tblAdjustList, tbLblAdjustId); }
 
 	public double totalAmount()
 	{
@@ -264,6 +203,7 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
 			cBtn.btnNew.setEnabled(true);
 			loadTableInfo();
+			loadItemReport();
 		});
 	}
 
@@ -307,15 +247,15 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 			hm.put("logo", sessionBean.getCompanyLogo());
 			hm.put("userIp", sessionBean.getUserIp());
 
-			sql = "select bm.vBranchName, sai.vAdjustNo, sai.dAdjustDate, sai.vReferenceNo, sai.vRemarks, vItemCode, vItemName,"+
-					" sad.vRemarks vDescription, uni.vUnitName, ss.vStatusName, ss.vFlag, sad.mQuantity, sad.mUnitRate, sad.mAmount,"+
-					" ui.vFullName, ISNULL((select ui.vFullName from master.tbUserInfo ui where ui.vUserId = sai.vApprovedBy), '')"+
-					" vApprovedBy, ISNULL((select ui.vFullName from master.tbUserInfo ui where ui.vUserId = sai.vCancelledBy), '')"+
-					" vCancelledBy from trans.tbStockAdjustmentInfo sai, trans.tbStockAdjustmentDetails sad, master.tbRawItemInfo rii,"+
-					" master.tbStockStatus ss, master.tbBranchMaster bm, master.tbUserInfo ui, master.tbUnitInfo uni where"+
-					" sai.vAdjustId = sad.vAdjustId and sad.vItemId = rii.vItemId and ss.vStatusId = sad.vAdjustStatus and"+
-					" sai.vBranchId = bm.vBranchId and sai.vModifiedBy = ui.vUserId and sad.vUnitId = convert(varchar(10), uni.iUnitId)"+
-					" and sai.vAdjustId = '"+adjustIds+"' and sai.iActive = 1 order by ss.vStatusName, sad.iAutoId";
+			sql = "select bm.vBranchName, sai.vAdjustNo, sai.dAdjustDate, sai.vReferenceNo, sai.vRemarks, vItemCode, vItemName, sad.vRemarks"+
+					" vDescription, uni.vUnitName, ss.vStatusName, ss.vFlag, sad.mQuantity, sad.mUnitRate, sad.mAmount, ui.vFullName,"+
+					" ISNULL((select ui.vFullName from master.tbUserInfo ui where ui.vUserId = sai.vApprovedBy), '') vApprovedBy,"+
+					" ISNULL((select ui.vFullName from master.tbUserInfo ui where ui.vUserId = sai.vCancelledBy), '') vCancelledBy,"+
+					" sts.vStatusName vStat from trans.tbStockAdjustmentInfo sai, trans.tbStockAdjustmentDetails sad, master.tbRawItemInfo rii,"+
+					" master.tbStockStatus ss, master.tbBranchMaster bm, master.tbUserInfo ui, master.tbUnitInfo uni, master.tbAllStatus sts"+
+					" where sai.vAdjustId = sad.vAdjustId and sad.vItemId = rii.vItemId and ss.vStatusId = sad.vAdjustStatus and sai.vBranchId"+
+					" = bm.vBranchId and sai.vModifiedBy = ui.vUserId and sai.vStatusId = sts.vStatusId and sad.vUnitId = convert(varchar(10),"+
+					" uni.iUnitId) and sai.vAdjustId = '"+adjustIds+"' and sai.iActive = 1 order by ss.vStatusName, sad.iAutoId";
 			//System.out.println(sql);
 			reportSource = "com/jasper/postransaction/rptStockAdjustment.jasper";
 			hm.put("sql", sql);
@@ -327,37 +267,62 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 
 	private void loadItemReport()
 	{
-		cmbItemNameForReport.removeAllItems();
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue()), branchId = sessionBean.getBranchId();
+		cmbItemNameReport.removeAllItems();
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue()), branchId = sessionBean.getBranchId();
 
-		String sqlC = "Select distinct r.vItemId, r.vItemName, r.vItemCode, dbo.funGetNumeric(r.vItemCode) iCode from"+
-				" trans.tbStockAdjustmentDetails abc inner join trans.tbStockAdjustmentinfo xyz on abc.vAdjustId ="+
-				" xyz.vAdjustId inner join master.tbRawItemInfo r on abc.vItemId = r.vItemId where dAdjustDate between"+
-				" '"+fromDate+"' and '"+toDate+"' and xyz.vBranchId = '"+branchId+"' order by iCode asc";
-		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
+		String sql = "select distinct rin.vItemId, rin.vItemCode, rin.vItemName, dbo.funGetNumeric(rin.vItemCode) from trans.tbStockAdjustmentInfo"+
+				" sai, trans.tbStockAdjustmentDetails sad, master.tbRawItemInfo rin where sai.vAdjustId = sad.vAdjustId and sad.vItemId = rin.vItemId"+
+				" and sai.dAdjustDate between '"+fmDate+"' and '"+toDate+"' and sai.vBranchId = '"+branchId+"' and sai.vStatusId = 'S6' and"+
+				" sai.iActive = 1 order by dbo.funGetNumeric(rin.vItemCode), rin.vItemName";
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
-			cmbItemNameForReport.addItem(element[0].toString());
-			cmbItemNameForReport.setItemCaption(element[0].toString(), element[2].toString()+" - "+element[1].toString());
+			cmbItemNameReport.addItem(element[0].toString());
+			cmbItemNameReport.setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
+		}
+
+		String sqlS = "select vStatusId, vStatusName, vFlag from master.tbStockStatus where iActive = 1 order by vStatusName";
+		for (Iterator<?> iter = cm.selectSql(sqlS).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+
+			cmbAdjTypeReport.addItem(element[0].toString());
+			cmbAdjTypeReport.setItemCaption(element[0].toString(), element[1].toString());
 		}
 	}
 
-	private void addValidation()
+	private void addValidationRpt()
 	{
-		if (txtReportFromDate.getValue() != null)
+		if (txtFromDateReport.getValue() != null)
 		{
-			if (txtReportToDate.getValue() != null)
-			{ viewReport(); }
+			if (txtToDateReport.getValue() != null)
+			{
+				if (!cm.getMultiComboValue(cmbItemNameReport).isEmpty())
+				{
+					if (!cm.getMultiComboValue(cmbAdjTypeReport).isEmpty())
+					{ viewReport(); }
+					else
+					{
+						cmbAdjTypeReport.focus();
+						cm.showNotification("warning", "Warning!", "Select adjust type.");
+					}
+				}
+				else
+				{
+					cmbItemNameReport.focus();
+					cm.showNotification("warning", "Warning!", "Select a raw item.");
+				}
+			}
 			else
 			{
-				txtReportToDate.focus();
+				txtToDateReport.focus();
 				cm.showNotification("warning", "Warning!", "Select to date.");
 			}
 		}
 		else
 		{
-			txtReportFromDate.focus();
+			txtFromDateReport.focus();
 			cm.showNotification("warning", "Warning!", "Select from date.");
 		}
 	}
@@ -365,11 +330,13 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 	public void viewReport()
 	{
 		String reportSource = "", sql = "";
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());
-		String itemId = cmbItemNameForReport.getValue().toString().replace("]", "").replace("[", "").trim();
-		String itemIds = itemId.isEmpty()? "%":itemId;
-		String datePara = "From: "+cm.dfBd.format(txtReportFromDate.getValue())+" To "+cm.dfBd.format(txtReportToDate.getValue());
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue());
+		String itemId = cm.getMultiComboValue(cmbItemNameReport);
+		String adjTyp = cm.getMultiComboValue(cmbAdjTypeReport);
+		String branId = sessionBean.getBranchId();
+
+		String dtPara = "From: "+cm.dfBd.format(txtFromDateReport.getValue())+" To "+cm.dfBd.format(txtToDateReport.getValue());
 		try
 		{
 			HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -381,17 +348,18 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 			hm.put("devloperInfo", sessionBean.getDeveloper());
 			hm.put("userIp", sessionBean.getUserIp());
 			hm.put("logo", sessionBean.getCompanyLogo());
-			hm.put("fromToDate", datePara);
+			hm.put("fromToDate", dtPara);
 
-			sql =   "select a.vAdjustNo, a.dAdjustDate, a.vReferenceNo, a.vRemarks, b.vItemId, r.vItemName, b.vAdjustStatus,"+
-					" s.vStatusName, b.mQuantity, b.mUnitRate, b.mAmount, b.vUnitName, c.vCategoryName, b.vRemarks vDescription"+
-					" from trans.tbStockAdjustmentInfo a inner join trans.tbStockAdjustmentDetails b on a.vAdjustId = b.vAdjustId"+
-					" inner join master.tbStockStatus s on b.vAdjustStatus = s.vStatusId inner join master.tbRawItemInfo r on"+
-					" r.vItemId = b.vItemId inner join master.tbItemCategory c on c.vCategoryId = r.vCategoryId where convert(date,"+
-					" dAdjustDate, 105) between '"+fromDate+"' and '"+toDate+"' and r.vItemId in (select Item from dbo.Split"+
-					"('"+itemIds+"')) and a.vBranchId = '"+sessionBean.getBranchId()+"' order by r.vItemName, a.dAdjustDate, b.iAutoId";
-
-			reportSource = "com/jasper/postransaction/rptStockAdjustmentDateBetween.jasper";
+			sql = "select sai.vAdjustNo, sai.dAdjustDate, sai.vReferenceNo, sai.vRemarks, sad.vItemId, rin.vItemCode+' - '+rin.vItemName"+
+					" vItemDetails, uni.vUnitName, sta.vStatusName, sad.mQuantity, sad.mUnitRate, sad.mAmount, cat.vCategoryName, sad.vRemarks"+
+					" vDescription from trans.tbStockAdjustmentInfo sai, trans.tbStockAdjustmentDetails sad, master.tbRawItemInfo rin,"+
+					" master.tbItemCategory cat, master.tbStockStatus sta, master.tbUnitInfo uni where sai.vAdjustId = sad.vAdjustId and"+
+					" sad.vItemId = rin.vItemId and rin.vCategoryId = cat.vCategoryId and sad.vAdjustStatus = sta.vStatusId and rin.vUnitId"+
+					" = uni.iUnitId and sad.vItemId in (select Item from dbo.Split('"+itemId+"')) and sai.vBranchId = '"+branId+"' and"+
+					" convert(date, dAdjustDate, 105) between '"+fmDate+"' and '"+toDate+"' and sad.vAdjustStatus in (select Item from dbo.Split"+
+					" ('"+adjTyp+"')) and sai.iActive = 1 order by cat.vCategoryName, dbo.funGetNumeric(rin.vItemCode), rin.vItemName";
+			//System.out.println(sql);
+			reportSource = "com/jasper/postransaction/rptStockAdjustDateBetween.jasper";
 			hm.put("sql", sql);
 			new ReportViewer(hm, reportSource);
 		}
@@ -401,7 +369,7 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Stock Adjustment List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Stock Adjustment List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -526,7 +494,7 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 			tbLblRemarks.get(ar).setImmediate(true);
 			tbLblRemarks.get(ar).addStyleName(ValoTheme.LABEL_TINY);
 
-			tbLblStatus.add(ar, new Label());
+			tbLblStatus.add(ar, new Label("", ContentMode.HTML));
 			tbLblStatus.get(ar).setWidth("100%");
 			tbLblStatus.get(ar).setImmediate(true);
 			tbLblStatus.get(ar).addStyleName(ValoTheme.LABEL_TINY);
@@ -595,49 +563,61 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 
 	private Panel addReport()
 	{
-		panelReport = new Panel("Stock Adjustment Report :: "+sessionBean.getCompanyName()+
-				" ("+this.sessionBean.getBranchName()+")");
+		Panel panelReport = new Panel("Stock Adjustment Report :: "+sessionBean.getCompanyName()+" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new  HorizontalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
 		content.setSizeFull();
 
-		GridLayout lay = new GridLayout(2, 5);
+		GridLayout lay = new GridLayout(5, 4);
 		lay.setSpacing(true);
 
-		txtReportFromDate  = new PopupDateField();
-		txtReportFromDate.setImmediate(true);
-		txtReportFromDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportFromDate.setValue(new Date());
-		txtReportFromDate.setWidth("110px");
-		txtReportFromDate.setDateFormat("dd-MM-yyyy");
-		txtReportFromDate.setRequired(true);
-		txtReportFromDate.setRequiredError("This field is required.");
-		lay.addComponent(new Label("From Date: "), 0, 0);
-		lay.addComponent(txtReportFromDate, 1, 0);
+		txtFromDateReport  = new PopupDateField();
+		txtFromDateReport.setImmediate(true);
+		txtFromDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtFromDateReport.setValue(new Date());
+		txtFromDateReport.setWidth("110px");
+		txtFromDateReport.setDateFormat("dd-MM-yyyy");
+		txtFromDateReport.setRequired(true);
+		txtFromDateReport.setRequiredError("This field is required.");
+		txtFromDateReport.setDescription("From Date");
+		lay.addComponent(new Label("Date(s): "), 0, 0);
+		lay.addComponent(txtFromDateReport, 1, 0);
 
-		txtReportToDate  = new PopupDateField();
-		txtReportToDate.setImmediate(true);
-		txtReportToDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportToDate.setValue(new Date());
-		txtReportToDate.setWidth("110px");
-		txtReportToDate.setDateFormat("dd-MM-yyyy");
-		txtReportToDate.setRequired(true);
-		txtReportToDate.setRequiredError("This field is required.");
-		lay.addComponent(new Label("To Date: "), 0, 1);
-		lay.addComponent(txtReportToDate, 1, 1);
+		txtToDateReport  = new PopupDateField();
+		txtToDateReport.setImmediate(true);
+		txtToDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtToDateReport.setValue(new Date());
+		txtToDateReport.setWidth("110px");
+		txtToDateReport.setDateFormat("dd-MM-yyyy");
+		txtToDateReport.setRequired(true);
+		txtToDateReport.setRequiredError("This field is required.");
+		txtToDateReport.setDescription("To Date");
+		lay.addComponent(txtToDateReport, 2, 0);
 
-		cmbItemNameForReport = new MultiComboBox();
-		cmbItemNameForReport.setWidth("350px");
-		cmbItemNameForReport.setInputPrompt("Select Item Name");
-		cmbItemNameForReport.setStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbItemNameForReport.setFilteringMode(FilteringMode.CONTAINS);
-		cmbItemNameForReport.setRequired(true);
-		cmbItemNameForReport.setRequiredError("This field is required.");
-		lay.addComponent(new Label("Item Name : "), 0, 2);
-		lay.addComponent(cmbItemNameForReport, 1, 2); 
+		cmbItemNameReport = new MultiComboBox();
+		cmbItemNameReport.setWidth("400px");
+		cmbItemNameReport.setInputPrompt("Select item name");
+		cmbItemNameReport.setStyleName(ValoTheme.COMBOBOX_TINY);
+		cmbItemNameReport.setFilteringMode(FilteringMode.CONTAINS);
+		cmbItemNameReport.setRequired(true);
+		cmbItemNameReport.setRequiredError("This field is required.");
+		Label lbl = new Label("Item Name: ");
+		lbl.setWidth("-1px");
+		lay.addComponent(lbl, 0, 1);
+		lay.addComponent(cmbItemNameReport, 1, 1, 4, 1); 
 
-		lay.addComponent(cBtnV, 1, 3);
+		cmbAdjTypeReport = new MultiComboBox();
+		cmbAdjTypeReport.setWidth("300px");
+		cmbAdjTypeReport.setInputPrompt("Select status");
+		cmbAdjTypeReport.setStyleName(ValoTheme.COMBOBOX_TINY);
+		cmbAdjTypeReport.setFilteringMode(FilteringMode.CONTAINS);
+		cmbAdjTypeReport.setRequired(true);
+		cmbAdjTypeReport.setRequiredError("This field is required.");
+		lay.addComponent(new Label("Adj. Type: "), 0, 2);
+		lay.addComponent(cmbAdjTypeReport, 1, 2, 4, 2); 
+
+		lay.addComponent(cBtnV, 1, 3, 4, 3);
 		content.addComponent(lay);
 		content.setComponentAlignment(lay, Alignment.MIDDLE_CENTER);
 		panelReport.setContent(content);
@@ -645,8 +625,84 @@ public class StockAdjustmentInfo extends VerticalLayout implements View
 		return panelReport;
 	}
 
+	private void loadTableInfo()
+	{
+		String search = "%"+txtSearch.getValue().toString()+"%", statId = "", statNm = "";
+		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
+		String fromDate = cm.dfDb.format(txtFromDate.getValue());
+		String toDate = cm.dfDb.format(txtToDate.getValue());
+		String branchId = sessionBean.getBranchId();
+		tableClear();
+		int i = 0;
+		try
+		{
+			String sql = "select sa.vAdjustId, sa.vAdjustNo, sa.dAdjustDate, sa.vRemarks, (select isnull(sum(mAmount), 0) from"+
+					" trans.tbStockAdjustmentDetails where vAdjustId = sa.vAdjustId) Amount, (select isnull(count(vItemId), 0) from"+
+					" trans.tbStockAdjustmentDetails where vAdjustId = sa.vAdjustId) iItem, sa.iActive, sa.vStatusId, ast.vStatusName"+
+					" from trans.tbStockAdjustmentInfo sa, master.tbAllStatus ast where vAdjustNo like '"+search+"' and sa.vStatusId"+
+					" = ast.vStatusId and sa.dAdjustDate between '"+fromDate+"' and '"+toDate+"' and sa.vStatusId like '"+status+"'"+
+					" and sa.vBranchId like '"+branchId+"' order by sa.dAdjustDate, sa.iAutoId desc";
+			//System.out.println(sql);
+			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+			{
+				Object[] element = (Object[]) iter.next();
+
+				if (tbLblAdjustId.size() <= i)
+				{ tableRowAdd(i); }
+
+				tbLblAdjustId.get(i).setValue(element[0].toString());
+				tbLblAdjustNo.get(i).setValue(element[1].toString());
+				tbLblAdjustDate.get(i).setValue(cm.dfBd.format(element[2]));
+				tbLblRemarks.get(i).setValue(element[3].toString());
+				tbLblTotalItem.get(i).setValue(element[5].toString());
+				tbLblStatus.get(i).setValue(element[8].toString());
+				tbLblAmount.get(i).setValue(cm.setComma(Double.parseDouble(element[4].toString())));
+				tbChkActive.get(i).setValue((element[6].toString().equals("1")? true:false));
+				tbChkActive.get(i).setEnabled(false);
+
+				statId = element[7].toString();
+				statNm = element[8].toString();
+
+				if (statId.equals("S5"))
+				{ status = "<b style=\"color:orange\">"+statNm+"</b>"; }
+				else if (statId.equals("S6"))
+				{ status = "<b style=\"color:green\">"+statNm+"</b>"; }
+				else if (statId.equals("S7"))
+				{ status = "<b style=\"color:red\">"+statNm+"</b>"; }
+				tbLblStatus.get(i).setValue(status);
+
+				if (statId.equals("S7"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Cancel");
+					tbCmbAction.get(i).removeItem("Approve");
+				}
+				if (statId.equals("S6"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Approve");
+				}
+
+				i++;
+			}
+			tblAdjustList.nextPage();
+			tblAdjustList.previousPage();
+			if (i == 0)
+			{ cm.showNotification("warning", "Sorry!", "No data found."); }
+			totalAmount();
+		}
+		catch (Exception e)
+		{ System.out.println(e); }
+	}
+
+	private void tableClear()
+	{ cm.tableClear(tblAdjustList, tbLblAdjustId); }
+
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
 		loadItemReport();
 	}

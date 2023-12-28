@@ -139,29 +139,28 @@ public class AddEditPurchaseOrder extends Window
 
 	private void loadRequisitionData()
 	{
-		if (cmbRequestedFrom.getValue() != null)
+		String reqBrnId = cm.getComboValue(cmbRequestedFrom);
+		String branchId = sessionBean.getBranchId();
+		String sql = "select vRequisitionId, vRequisitionNo+' ('+CONVERT(varchar(20), dRequisitionDate)+')' vReqDetails from"+
+				" (select rei.vRequisitionId, rei.vRequisitionNo, rei.dRequisitionDate, sum(red.mQuantity) mReqQty, isnull((select"+
+				" sum(pod.mQuantity) from trans.tbPurchaseOrderDetails pod where pod.vRequisitionId = rei.vRequisitionId and pod.iActive = 1"+
+				" and pod.vOrderId != '"+orderId+"'), 0) mOrdQty from trans.tbRequisitionInfo rei, trans.tbRequisitionDetails red where"+
+				" rei.vRequisitionId = red.vRequisitionId and rei.iActive = 1 and rei.vBranchId = '"+reqBrnId+"' and rei.vReqBranchId ="+
+				" '"+branchId+"' and rei.vStatusId = 'S6' group by rei.vRequisitionId, rei.vRequisitionNo, rei.dRequisitionDate) temp"+
+				" order by dRequisitionDate asc";
+		//System.out.println(sql);
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
-			String reqBrnId = cmbRequestedFrom.getValue().toString();
-			String branchId = sessionBean.getBranchId();
-			String sql = "select vRequisitionId, vRequisitionNo, dRequisitionDate from trans.tbRequisitionInfo c where"+
-					" iActive = 1 and vStatusId = 'S6' and vBranchId = '"+reqBrnId+"' and vReqBranchId = '"+branchId+"'"+
-					" and (select (select isnull (sum (mQuantity),0) from trans.tbRequisitionDetails where vRequisitionId"+
-					" = c.vRequisitionId) - isnull(sum(mQuantity),0) from trans.tbPurchaseOrderDetails a where"+
-					" a.vRequisitionId = c.vRequisitionId and a.vOrderId != '"+orderId+"') > 0 order by dRequisitionDate desc";
-			//System.out.println(sql);
-			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-			{
-				Object[] element = (Object[]) iter.next();
-				cmbRequisition.addItem(element[0].toString());
-				cmbRequisition.setItemCaption(element[0].toString(), element[1].toString());
-			}
+			Object[] element = (Object[]) iter.next();
+			cmbRequisition.addItem(element[0].toString());
+			cmbRequisition.setItemCaption(element[0].toString(), element[1].toString());
 		}
 	}
 
 	private void loadBranchData()
 	{
-		String sql = "select vBranchId, vBranchName from master.tbBranchMaster where iActive = 1 and"+
-				" iBranchTypeId = 3 and vBranchId != '"+sessionBean.getBranchId()+"' order by vBranchName";
+		String sql = "select vBranchId, vBranchName from master.tbBranchMaster where iActive = 1 and iBranchTypeId = 3 and"+
+				" vBranchId != '"+sessionBean.getBranchId()+"' order by vBranchName";
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -618,7 +617,6 @@ public class AddEditPurchaseOrder extends Window
 		win.setModal(true);
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
 		win.focus();
-
 		win.addCloseListener(event ->
 		{ loadSupplier(); });
 	}

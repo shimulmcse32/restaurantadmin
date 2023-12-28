@@ -15,19 +15,17 @@ public class RequisitionInfoGateway
 	public RequisitionInfoGateway()
 	{ }
 
-	public String getRequisitionId(String BranchId)
+	public String getRequisitionId(String branId)
 	{
 		String maxId = "";
 		Session session = SessionFactoryUtil.getInstance().openSession();
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull(max(cast(SUBSTRING(vRequisitionId, 7, 10) as int)),"+
-					" 0)+1 from trans.tbRequisitionInfo";
-
+			String query = "select isnull(max(cast(SUBSTRING(vRequisitionId, 7, 10) as int)), 0)+1 from trans.tbRequisitionInfo";
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
-			{ maxId = BranchId+"R"+ iter.next().toString(); }
+			{ maxId = branId+"R"+ iter.next().toString(); }
 		}
 		catch (Exception ex)
 		{ System.out.print(ex + "Id"); }
@@ -42,10 +40,9 @@ public class RequisitionInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String query = "select isnull( max( cast( SUBSTRING(vRequisitionNo, 4, len(vRequisitionNo)) as int)), cast( SUBSTRING('"+Date+"', 1, 4) +"+
-					" SUBSTRING('"+Date+"', 6, 2)+'000' as int)) + 1 from trans.tbRequisitionInfo where"+
+			String query = "select isnull(max(cast(SUBSTRING(vRequisitionNo, 4, len(vRequisitionNo)) as int)), cast(SUBSTRING"+
+					"('"+Date+"', 1, 4) + SUBSTRING('"+Date+"', 6, 2)+'000' as int)) + 1 from trans.tbRequisitionInfo where"+
 					" month(dRequisitionDate) = month('"+Date+"') and year(dRequisitionDate) = year('"+Date+"')";
-
 			Iterator<?> iter = session.createSQLQuery(query).list().iterator();
 			if (iter.hasNext())
 			{ maxId = "RQN"+ iter.next().toString(); }
@@ -85,13 +82,11 @@ public class RequisitionInfoGateway
 		{
 			if (flag.equals("Add"))
 			{
-				String sql = "insert into trans.tbRequisitionInfo (vBranchId, vRequisitionId, vRequisitionNo, vReqBranchId,"+
-						" dRequisitionDate, dDeliveryDate, vReferenceNo, vRemarks, vStatusId, vApprovedBy, vApproveTime, vCancelledBy,"+
-						" vCancelledTime, vCancelReason, iActive, vCreatedBy, dCreatedDate, vModifiedBy, dModifiedDate)"+
-						" values (:branchId, :requisitionId, :requisitionNo, :reqBranchId, :requisitionDate, :deliveryDate,"+
-						" :referenceNo, :remarks, :statusId, :approvedBy, :approvedTime, :cancelledBy, :cancelledTime, :cancelReason,"+
-						" 1, :createdBy, getDate(), :modifiedBy, getDate())";
-
+				String sql = "insert into trans.tbRequisitionInfo (vBranchId, vRequisitionId, vRequisitionNo, vReqBranchId, dRequisitionDate,"+
+						" dDeliveryDate, vReferenceNo, vRemarks, vStatusId, vApprovedBy, vApproveTime, vCancelledBy, vCancelledTime, vCancelReason,"+
+						" iActive, vCreatedBy, dCreatedDate, vModifiedBy, dModifiedDate) values (:branchId, :requisitionId, :requisitionNo,"+
+						" :reqBranchId, :requisitionDate, :deliveryDate, :referenceNo, :remarks, :statusId, :approvedBy, :approvedTime,"+
+						" :cancelledBy, :cancelledTime, :cancelReason, 1, :createdBy, getDate(), :modifiedBy, getDate())";
 				SQLQuery insert = session.createSQLQuery(sql);
 				insert.setParameter("branchId", pom.getBranchId());
 				insert.setParameter("requisitionId", pom.getRequisitionId());
@@ -120,9 +115,8 @@ public class RequisitionInfoGateway
 			else if (flag.equals("Edit"))
 			{
 				String sql = "update trans.tbRequisitionInfo set dRequisitionDate = :requisitionDate, vReqBranchId = :reqBranchId,"+
-						" dDeliveryDate = :deliveryDate, vRemarks = :remarks, vModifiedBy = :modifiedBy,"+
-						" dModifiedDate = getDate(), vReferenceNo = :referenceNo where vRequisitionId = :requisitionId";
-
+						" dDeliveryDate = :deliveryDate, vRemarks = :remarks, vModifiedBy = :modifiedBy, dModifiedDate = getDate(),"+
+						" vReferenceNo = :referenceNo where vRequisitionId = :requisitionId";
 				SQLQuery insert = session.createSQLQuery(sql);
 				insert.setParameter("requisitionId", pom.getRequisitionId());
 				insert.setParameter("requisitionDate", pom.getRequisitionDate());
@@ -151,17 +145,15 @@ public class RequisitionInfoGateway
 		return ret;
 	}
 
-	public boolean activeInactiveData(String RequisitionId, String userId)
+	public boolean activeInactiveData(String reqId, String userId)
 	{
 		boolean ret = false;
 
-		String sql = " update trans.tbRequisitionDetails set iActive = (select case when iActive = 1"+
-				" then 0 else 1 end from trans.tbRequisitionInfo where vRequisitionId = '"+RequisitionId+"')"+
-				" where vRequisitionId = '"+RequisitionId+"'";
+		String sql = " update trans.tbRequisitionDetails set iActive = (select case when iActive = 1 then 0 else 1 end from"+
+				" trans.tbRequisitionInfo where vRequisitionId = '"+reqId+"') where vRequisitionId = '"+reqId+"'";
 
-		sql += "update trans.tbRequisitionInfo set iActive = (select case when iActive = 1"+
-				" then 0 else 1 end from trans.tbRequisitionInfo where vRequisitionId = '"+RequisitionId+"'),"+
-				" vModifiedBy = '"+userId+"', dModifiedDate = getdate() where vRequisitionId = '"+RequisitionId+"'";
+		sql += "update trans.tbRequisitionInfo set iActive = (select case when iActive = 1 then 0 else 1 end from trans.tbRequisitionInfo"+
+				" where vRequisitionId = '"+reqId+"'), vModifiedBy = '"+userId+"', dModifiedDate = getdate() where vRequisitionId = '"+reqId+"'";
 
 		Session session = SessionFactoryUtil.getInstance().openSession();
 		Transaction tx = session.beginTransaction();
@@ -180,64 +172,6 @@ public class RequisitionInfoGateway
 		return ret;
 	}
 
-	public boolean RequisitionCancel(RequisitionInfoModel pom, String flag)
-	{
-		boolean ret = false;
-		Session session = SessionFactoryUtil.getInstance().openSession();
-		Transaction tx = session.beginTransaction();
-		try
-		{
-			String update = "";
-			update = " update trans.tbRequisitionInfo set vCancelledBy = :cancelledBy,"+
-					" vCancelledTime = getdate(), vCancelReason = :cancelReason, vModifiedBy = :modifiedBy,"+
-					" dModifiedDate = getdate(), vStatusId = :statusId where vRequisitionId = :requisitionId";
-			SQLQuery updateSql = session.createSQLQuery(update);
-			updateSql.setParameter("cancelledBy", pom.getCancelBy());
-			updateSql.setParameter("cancelReason", pom.getCancelReason());
-			updateSql.setParameter("modifiedBy", pom.getCreatedBy());
-			updateSql.setParameter("statusId", pom.getStatusId());
-
-			//Where clause
-			updateSql.setParameter("requisitionId", pom.getRequisitionId());
-			updateSql.executeUpdate();			
-			tx.commit();
-			ret = true;
-		}
-		catch(Exception exp)
-		{
-			System.out.println("Error update/insert: "+exp);
-			tx.rollback();
-		}
-		finally{ session.close(); }
-		return ret;
-	}
-
-	public boolean RequisitionApprove(String reqDate, String narration, String RequisitionId, String userId,
-			String branchId)
-	{
-		boolean ret = false;
-		Session session = SessionFactoryUtil.getInstance().openSession();
-		Transaction tx = session.beginTransaction();
-		try
-		{
-			String sqlApprove = "update trans.tbRequisitionInfo set vStatusId = 'S6', vApprovedBy = '"+userId+"',"+
-					" vApproveTime = '"+reqDate+"', vModifiedBy = '"+userId+"', dModifiedDate = getDate(),"+
-					" vRemarks = '"+narration+"' where vRequisitionId like '"+RequisitionId+"'";
-
-			SQLQuery insertMain = session.createSQLQuery(sqlApprove);
-			insertMain.executeUpdate();
-			tx.commit();
-			ret = true;
-		}
-		catch(Exception exp)
-		{
-			System.out.println("Error update/insert: "+exp);
-			tx.rollback();
-		}
-		finally{ session.close(); }
-		return ret;
-	}
-
 	public boolean selectEditData(RequisitionInfoModel pom, String idFind)
 	{
 		boolean ret = false;
@@ -245,11 +179,10 @@ public class RequisitionInfoGateway
 		session.beginTransaction();
 		try
 		{
-			String sql = "Select vBranchId, vRequisitionId, vRequisitionNo, dRequisitionDate, vReqBranchId,"+
-					" dDeliveryDate, vRemarks, vReferenceNo FROM trans.tbRequisitionInfo where vRequisitionId = :requisitionId ";
+			String sql = "select vBranchId, vRequisitionId, vRequisitionNo, dRequisitionDate, vReqBranchId, dDeliveryDate, vRemarks, vReferenceNo"+
+					" from trans.tbRequisitionInfo where vRequisitionId = :reqId";
 			SQLQuery select = session.createSQLQuery(sql);
-			select.setParameter("requisitionId", idFind);
-
+			select.setParameter("reqId", idFind);
 			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				ret = true;

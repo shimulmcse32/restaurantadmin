@@ -52,24 +52,21 @@ public class UserRoleInfo extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 
 	private CommonMethod cm;
 	private RoleInfoGateway rig = new RoleInfoGateway();
+	private String formId;
 
 	public UserRoleInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;		
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
 		addComponents(cBtn, addPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -82,9 +79,9 @@ public class UserRoleInfo extends VerticalLayout implements View
 			event.getButton().setEnabled(false);
 		});
 
-		cBtn.btnRefresh.addClickListener(event -> loadRoleInfo());
+		cBtn.btnRefresh.addClickListener(event -> loadTableInfo());
 
-		txtSearch.addValueChangeListener(event -> loadRoleInfo());
+		txtSearch.addValueChangeListener(event -> loadTableInfo());
 	}
 
 	private void addEditWindow(String addEdit, String roleId, String ar)
@@ -100,13 +97,13 @@ public class UserRoleInfo extends VerticalLayout implements View
 			if (!ar.isEmpty())
 			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
 			cBtn.btnNew.setEnabled(true);
-			loadRoleInfo();
+			loadTableInfo();
 		});
 	}
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Role List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Role List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -244,7 +241,7 @@ public class UserRoleInfo extends VerticalLayout implements View
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
 	}
 
-	private void loadRoleInfo()
+	private void loadTableInfo()
 	{
 		String search = "%"+txtSearch.getValue().toString().replaceAll("'", "")+"%";
 		tableClear();
@@ -282,5 +279,10 @@ public class UserRoleInfo extends VerticalLayout implements View
 	{ cm.tableClear(tblRoleList, tbLblRoleId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadRoleInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

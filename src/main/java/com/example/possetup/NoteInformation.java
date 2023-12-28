@@ -53,23 +53,22 @@ public class NoteInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogActive, ogType;
 
 	private CommonMethod cm;
 	private ItemUnitGateway iug = new ItemUnitGateway();
+	private String formId;
 
 	public NoteInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel());
 
 		addActions();
@@ -114,7 +113,7 @@ public class NoteInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Note's List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Note List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -313,5 +312,10 @@ public class NoteInformation extends VerticalLayout implements View
 	{ cm.tableClear(tblNoteList, tbLblNoteId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

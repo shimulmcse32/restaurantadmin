@@ -56,26 +56,23 @@ public class CategoryInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogFilter;
 
 	private CommonMethod cm;
 	private ItemCategoryGateway cig = new ItemCategoryGateway();
+	private String formId;
 
 	public CategoryInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
 		addComponents(cBtn, addPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -114,7 +111,7 @@ public class CategoryInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Menu Category List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Menu Category List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -330,5 +327,10 @@ public class CategoryInformation extends VerticalLayout implements View
 	{ cm.tableClear(tblCategoryList, tbLblCategoryId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

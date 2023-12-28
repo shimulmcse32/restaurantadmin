@@ -22,9 +22,8 @@ public class TransAppCanGateway
 			String update = "";
 			if (flag.equals("Purchase Order"))
 			{
-				update = " update trans.tbPurchaseOrderInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vOrderId = :transId";
+				update = " update trans.tbPurchaseOrderInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vOrderId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -35,9 +34,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Purchase"))
 			{
-				update = " update trans.tbPurchaseInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vPurchaseId = :transId";
+				update = " update trans.tbPurchaseInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vPurchaseId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -48,9 +46,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Adjustment"))
 			{
-				update = " update trans.tbStockAdjustmentInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vAdjustId = :transId";
+				update = " update trans.tbStockAdjustmentInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vAdjustId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -61,9 +58,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Requisition"))
 			{
-				update = " update trans.tbRequisitionInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vRequisitionId = :transId";
+				update = " update trans.tbRequisitionInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vRequisitionId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -74,9 +70,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Purchase Return"))
 			{
-				update = " update trans.tbPurchaseReturnInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vReturnId = :transId";
+				update = " update trans.tbPurchaseReturnInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vReturnId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -87,9 +82,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Physical Stock"))
 			{
-				update = " update trans.tbPhysicalStockInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vPhysicalStockId = :transId";
+				update = " update trans.tbPhysicalStockInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vPhysicalStockId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -100,9 +94,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Issue"))
 			{
-				update = " update trans.tbIssueInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vIssueId = :transId";
+				update = " update trans.tbIssueInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vIssueId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -113,9 +106,8 @@ public class TransAppCanGateway
 			}
 			else if (flag.equals("Issue Return"))
 			{
-				update = " update trans.tbIssueReturnInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vIssueReturnId = :transId";
+				update = " update trans.tbIssueReturnInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vIssueReturnId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());
@@ -126,9 +118,8 @@ public class TransAppCanGateway
 			}
 			else
 			{
-				update = " update trans.tbReceiptPurchaseInfo set vCancelledBy = :cancelledBy,"+
-						" vCancelledTime = getdate(), vCancelReason = :cancelReason,"+
-						" vStatusId = :statusId where vReceiptId = :transId";
+				update = " update trans.tbReceiptPurchaseInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(),"+
+						" vCancelReason = :cancelReason, vStatusId = :statusId where vReceiptId = :transId";
 				SQLQuery updateSql = session.createSQLQuery(update);
 				updateSql.setParameter("cancelledBy", tacm.getCancelBy());
 				updateSql.setParameter("cancelReason", tacm.getCancelReason());

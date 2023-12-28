@@ -276,6 +276,8 @@ public class AddEditRole extends Window
 		txtRoleName = new TextField();
 		txtRoleName.setImmediate(true);
 		txtRoleName.setStyleName(ValoTheme.TEXTFIELD_TINY);
+		txtRoleName.setInputPrompt("User role name");
+		txtRoleName.setDescription("User role menu");
 		txtRoleName.setRequired(true);
 		txtRoleName.setRequiredError("This field is required");
 		grid.addComponent(new Label("Role Name: "), 0, 0);

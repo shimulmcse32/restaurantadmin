@@ -27,7 +27,6 @@ import com.common.share.SessionBean;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
-import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupDateField;
 import com.vaadin.ui.GridLayout;
@@ -36,7 +35,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
@@ -48,16 +46,13 @@ public class IssueAndReturn extends VerticalLayout implements View
 	private CommonButton cBtnIssue = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateIssue, txtToDateIssue;
 	private OptionGroup ogReportType;
-	private Panel panelIssue;
 
 	//Item Wise Issue Summary Report
 	private CommonButton cBtnItem = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateItem, txtToDateItem;
-	private MultiComboBox cmbItemName;
-	private ComboBox cmbBranchItem;
+	private MultiComboBox cmbItemName, cmbBranchItem;
 	private OptionGroup ogReportItemType;
 	private Label lblType;
-	private Panel panelItem;
 
 	private CommonMethod cm;
 
@@ -75,8 +70,8 @@ public class IssueAndReturn extends VerticalLayout implements View
 
 	private void loadComboBoxs()
 	{
-		String sqlItem = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iSerial"+
-				" from master.tbRawItemInfo order by iSerial, vItemName", caption = "";
+		String sqlItem = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iSerial from master.tbRawItemInfo"+
+				" order by iSerial, vItemName", caption = "";
 		for (Iterator<?> iter = cm.selectSql(sqlItem).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -91,8 +86,6 @@ public class IssueAndReturn extends VerticalLayout implements View
 		{
 			Object[] element = (Object[]) iter.next();
 
-			cmbBranchItem.addItem("%");
-			cmbBranchItem.setItemCaption("%", "ALL");
 			cmbBranchItem.addItem(element[0].toString());
 			cmbBranchItem.setItemCaption(element[0].toString(), element[1].toString());
 		}
@@ -101,7 +94,7 @@ public class IssueAndReturn extends VerticalLayout implements View
 	//Issue Report Start
 	private Panel addIssue()
 	{
-		panelIssue = new Panel("Date Wise Issue/Return Details :: "+sessionBean.getCompanyName()+
+		Panel panelIssue = new Panel("Date Wise Issue/Return Details :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -164,12 +157,7 @@ public class IssueAndReturn extends VerticalLayout implements View
 	private void addValidationIssue()
 	{
 		if (txtFromDateIssue.getValue() != null && txtToDateIssue.getValue() != null)
-		{ 
-			if (ogReportType.getValue().toString().equalsIgnoreCase("Issue"))
-			{ viewReportIssue(); }
-			else
-			{ viewReportReturn(); }
-		}
+		{ viewReportIssue(); }
 		else
 		{
 			txtFromDateIssue.focus();
@@ -183,13 +171,21 @@ public class IssueAndReturn extends VerticalLayout implements View
 		String reportSource = "", sql = "";
 		try
 		{
-			String fromDate = cm.dfDb.format(txtFromDateIssue.getValue());
+			String fmDate = cm.dfDb.format(txtFromDateIssue.getValue());
 			String toDate = cm.dfDb.format(txtToDateIssue.getValue());
-			String branch = sessionBean.getBranchId();
-			String datePara = " from "+cm.dfBd.format(txtFromDateIssue.getValue())+" to "+cm.dfBd.format(txtToDateIssue.getValue());
+			String branId = sessionBean.getBranchId();
+			String dtPara = " from "+cm.dfBd.format(txtFromDateIssue.getValue())+" to "+cm.dfBd.format(txtToDateIssue.getValue());
 
-			sql = "select * from funIssueSummary('"+fromDate+"', '"+toDate+"', '"+branch+"') order by dIssueDate, vItemName";
-			reportSource = "com/jasper/postransaction/rptIssueDateBetween.jasper";
+			if (ogReportType.getValue().toString().equalsIgnoreCase("Issue"))
+			{
+				sql = "select * from funIssueSummary('"+fmDate+"', '"+toDate+"', '"+branId+"') order by dIssueDate, vItemName";
+				reportSource = "com/jasper/postransaction/rptIssueDateBetween.jasper";
+			}
+			else
+			{
+				sql = "select * from funIssueReturnSummary('"+fmDate+"', '"+toDate+"', '"+branId+"') order by dReturnDate, vItemName";
+				reportSource = "com/jasper/postransaction/rptIssueReturnDateBetween.jasper";
+			}
 
 			hm.put("companyName", sessionBean.getCompanyName());
 			hm.put("branchName", sessionBean.getBranchName());
@@ -200,7 +196,7 @@ public class IssueAndReturn extends VerticalLayout implements View
 			hm.put("userName", sessionBean.getFullName());
 			hm.put("devloperInfo", sessionBean.getDeveloper());
 			hm.put("userIp", sessionBean.getUserIp());
-			hm.put("fromToDate", datePara);
+			hm.put("fromToDate", dtPara);
 			hm.put("url", Page.getCurrent().getLocation().toString().replaceAll("#!IssueReport%239", "?"));
 
 			new ReportViewer(hm, reportSource);
@@ -210,44 +206,10 @@ public class IssueAndReturn extends VerticalLayout implements View
 	}
 	//Issue Report End
 
-	//Issue Return Report End
-	private void viewReportReturn()
-	{
-		HashMap<String, Object> hm = new HashMap<String, Object>();
-		String reportSource = "", sql = "";
-		try
-		{
-			String fromDate = cm.dfDb.format(txtFromDateIssue.getValue());
-			String toDate = cm.dfDb.format(txtToDateIssue.getValue());
-			String branch = sessionBean.getBranchId();
-			String datePara = " from "+cm.dfBd.format(txtFromDateIssue.getValue())+" to "+cm.dfBd.format(txtToDateIssue.getValue());
-
-			sql = "select * from funIssueReturnSummary('"+fromDate+"', '"+toDate+"', '"+branch+"') order by dReturnDate, vItemName";
-			reportSource = "com/jasper/postransaction/rptIssueReturnDateBetween.jasper";
-
-			hm.put("companyName", sessionBean.getCompanyName());
-			hm.put("branchName", sessionBean.getBranchName());
-			hm.put("address", sessionBean.getCompanyAddress());
-			hm.put("phoneFax", sessionBean.getCompanyContact());
-
-			hm.put("sql", sql);
-			hm.put("userName", sessionBean.getFullName());
-			hm.put("devloperInfo", sessionBean.getDeveloper());
-			hm.put("url", Page.getCurrent().getLocation().toString().replaceAll("#!IssueReport%239", "?"));
-			hm.put("userIp", sessionBean.getUserIp());
-			hm.put("fromToDate", datePara);
-
-			new ReportViewer(hm, reportSource);
-		}
-		catch (Exception ex)
-		{ System.out.println("Error in view report: "+ex); }
-	}
-	//Issue Return Report End
-
 	//Item Wise Issue Report Start
 	private Panel addItemIssue()
 	{
-		panelItem = new Panel("Item Wise Issue/Return Details :: "+sessionBean.getCompanyName()+
+		Panel panelItem = new Panel("Item Wise Issue/Return Details :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -300,11 +262,8 @@ public class IssueAndReturn extends VerticalLayout implements View
 		lay.addComponent(new Label("Item Name: "), 0, 3);
 		lay.addComponent(cmbItemName, 1, 3);
 
-		cmbBranchItem = new ComboBox();
-		cmbBranchItem.setWidth("300px");
-		cmbBranchItem.setImmediate(true);
-		cmbBranchItem.addStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbBranchItem.setFilteringMode(FilteringMode.CONTAINS);
+		cmbBranchItem = new MultiComboBox();
+		cmbBranchItem.setWidth("450px");
 		cmbBranchItem.setInputPrompt("Select issued branch name");
 		cmbBranchItem.setRequired(true);
 		cmbBranchItem.setRequiredError("This field is required");
@@ -337,9 +296,9 @@ public class IssueAndReturn extends VerticalLayout implements View
 	{
 		if (txtFromDateItem.getValue() != null && txtToDateItem.getValue() != null)
 		{
-			if (!cmbItemName.getValue().toString().replace("[", "").replace("]", "").isEmpty())
+			if (!cm.getMultiComboValue(cmbItemName).isEmpty())
 			{
-				if (cmbBranchItem.getValue() != null)
+				if (!cm.getMultiComboValue(cmbBranchItem).isEmpty())
 				{ viewReportItem(); }
 				else
 				{
@@ -366,37 +325,33 @@ public class IssueAndReturn extends VerticalLayout implements View
 		String reportSource = "", sql = "";
 		try
 		{
-			String fromDate = cm.dfDb.format(txtFromDateItem.getValue());
+			String fmDate = cm.dfDb.format(txtFromDateItem.getValue());
 			String toDate = cm.dfDb.format(txtToDateItem.getValue());
-			String branch = sessionBean.getBranchId();
-			String ItemIds = cmbItemName.getValue().toString().replace("]", "").replace("[", "").trim();
-			String datePara = cm.dfBd.format(txtFromDateItem.getValue())+" To "+
-					cm.dfBd.format(txtToDateItem.getValue());
+			String branId = sessionBean.getBranchId();
+			String itemId = cm.getMultiComboValue(cmbItemName);
+			String dtPara = cm.dfBd.format(txtFromDateItem.getValue())+" To "+cm.dfBd.format(txtToDateItem.getValue());
+			String slBran = cm.getMultiComboValue(cmbBranchItem);
+
 			if (ogReportItemType.getValue().toString().equals("Issue"))
 			{
-				sql = "select isd.vItemId, rii.vItemCode+' - '+rii.vItemName vItemDetails, uni.vUnitName, SUM(isd.mIssueQty)"+
-						" mIssueQty, AVG(isd.mMainRate) mMainRate, isd.mCostMargin, AVG(isd.mIssueRate)mIssueRate, SUM(isd.mAmount)"+
-						" mAmount, dbo.funGetNumeric(rii.vItemCode) iSerial from trans.tbIssueInfo isi, trans.tbIssueDetails"+
-						" isd, master.tbRawItemInfo rii, master.tbUnitInfo uni where isi.vIssueId = isd.vIssueId and isd.vItemId"+
-						" = rii.vItemId and isd.vUnitId = convert(varchar(10), uni.iUnitId) and isd.vItemId in (select Item"+
-						" from dbo.Split('"+ItemIds+"')) and isi.dIssueDate between '"+fromDate+"' and '"+toDate+"' and isi.vBranchTo"+
-						" like '"+cmbBranchItem.getValue().toString()+"' and isi.vBranchFrom = '"+branch+"' group by isd.vItemId,"+
-						" rii.vItemCode+' - '+rii.vItemName, uni.vUnitName, isd.mCostMargin, dbo.funGetNumeric(rii.vItemCode)"+
-						" order by iSerial";
+				sql = "select isd.vItemId, rii.vItemCode+' - '+rii.vItemName vItemDetails, uni.vUnitName, SUM(isd.mIssueQty) mIssueQty, AVG(isd.mMainRate)"+
+						" mMainRate, isd.mCostMargin, AVG(isd.mIssueRate)mIssueRate, SUM(isd.mAmount) mAmount, dbo.funGetNumeric(rii.vItemCode) iSerial"+
+						" from trans.tbIssueInfo isi, trans.tbIssueDetails isd, master.tbRawItemInfo rii, master.tbUnitInfo uni where isi.vIssueId ="+
+						" isd.vIssueId and isd.vItemId = rii.vItemId and isd.vUnitId = convert(varchar(10), uni.iUnitId) and isd.vItemId in (select Item"+
+						" from dbo.Split('"+itemId+"')) and isi.dIssueDate between '"+fmDate+"' and '"+toDate+"' and isi.vBranchTo in (select Item from"+
+						" dbo.Split('"+slBran+"')) and isi.vBranchFrom = '"+branId+"' group by isd.vItemId, rii.vItemCode+' - '+rii.vItemName, uni.vUnitName,"+
+						" isd.mCostMargin, dbo.funGetNumeric(rii.vItemCode) order by iSerial";
 				reportSource = "com/jasper/postransaction/rptItemWiseIssueSummary.jasper";
 			}
 			else
 			{
-				sql = "select ird.vItemId, rii.vItemCode+' - '+rii.vItemName vItemDetails, uni.vUnitName, SUM(ird.mIssueQty)"+
-						" mIssueQty, SUM(ird.mReturnedQty)mReturnedQty, AVG(ird.mMainRate) mMainRate, ird.mCostMargin,"+
-						" AVG(ird.mIssueRate)mIssueRate, SUM(ird.mAmount) mAmount, dbo.funGetNumeric(rii.vItemCode) iSerial"+
-						" from trans.tbIssueReturnInfo iri, trans.tbIssueReturnDetails ird, master.tbRawItemInfo rii,"+
-						" master.tbUnitInfo uni where iri.vIssueReturnId = ird.vIssueReturnId and ird.vItemId = rii.vItemId"+
-						" and ird.vUnitId = convert(varchar(10), uni.iUnitId) and ird.vItemId in (select Item from"+
-						" dbo.Split('"+ItemIds+"')) and iri.dReturnDate between '"+fromDate+"' and '"+toDate+"' and"+
-						" iri.vReturnFrom like '"+cmbBranchItem.getValue().toString()+"' and iri.vReturnTo = '"+branch+"'"+
-						" group by ird.vItemId, rii.vItemCode+' - '+rii.vItemName, uni.vUnitName, ird.mCostMargin,"+
-						" dbo.funGetNumeric(rii.vItemCode) order by iSerial";
+				sql = "select ird.vItemId, rii.vItemCode+' - '+rii.vItemName vItemDetails, uni.vUnitName, SUM(ird.mIssueQty) mIssueQty, SUM(ird.mReturnedQty)"+
+						" mReturnedQty, AVG(ird.mMainRate) mMainRate, ird.mCostMargin, AVG(ird.mIssueRate)mIssueRate, SUM(ird.mAmount) mAmount,"+
+						" dbo.funGetNumeric(rii.vItemCode) iSerial from trans.tbIssueReturnInfo iri, trans.tbIssueReturnDetails ird, master.tbRawItemInfo rii,"+
+						" master.tbUnitInfo uni where iri.vIssueReturnId = ird.vIssueReturnId and ird.vItemId = rii.vItemId and ird.vUnitId = convert(varchar(10),"+
+						" uni.iUnitId) and ird.vItemId in (select Item from dbo.Split('"+itemId+"')) and iri.dReturnDate between '"+fmDate+"' and '"+toDate+"' and"+
+						" iri.vReturnFrom in (select Item from dbo.Split('"+slBran+"')) and iri.vReturnTo = '"+branId+"' group by ird.vItemId, rii.vItemCode+' -"+
+						" '+rii.vItemName, uni.vUnitName, ird.mCostMargin, dbo.funGetNumeric(rii.vItemCode) order by iSerial";
 				reportSource = "com/jasper/postransaction/rptItemWiseReturnSummary.jasper";
 			}
 
@@ -410,7 +365,7 @@ public class IssueAndReturn extends VerticalLayout implements View
 			hm.put("userName", sessionBean.getFullName());
 			hm.put("devloperInfo", sessionBean.getDeveloper());
 			hm.put("userIp", sessionBean.getUserIp());
-			hm.put("fromToDate", datePara);
+			hm.put("fromToDate", dtPara);
 
 			new ReportViewer(hm, reportSource);
 		}

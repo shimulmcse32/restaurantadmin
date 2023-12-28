@@ -61,26 +61,25 @@ public class IssueReturnInfo extends VerticalLayout implements View
 	private ArrayList<Label> tbLblReturnTo = new ArrayList<Label>();
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
+
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private PopupDateField txtFromDate, txtToDate;
 	private CommonButton cBtnS = new CommonButton("", "", "", "", "", "Search", "", "", "");
 
 	private CommonMethod cm;
 	private IssueReturnGateway prg = new IssueReturnGateway();
+	private String formId;
 
 	public IssueReturnInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -98,22 +97,6 @@ public class IssueReturnInfo extends VerticalLayout implements View
 
 		cBtnS.btnSearch.addClickListener(event ->
 		{ loadTableInfo(); });
-
-		tblIssueReturnList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblReturnId.get(ar).getValue().toString();
-				if (!prg.getIssueUse(id))
-				{ addEditWindow("Edit", id, ar+""); }
-				else
-				{
-					cm.showNotification("failure", "Error!", "Issue is in use.");
-					tbCmbAction.get(ar).setEnabled(true);
-				}
-			}
-		});
 	}
 
 	private void addEditWindow(String addEdit, String itemId, String ar)
@@ -305,8 +288,9 @@ public class IssueReturnInfo extends VerticalLayout implements View
 	//Table Panel start 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Issue Return List :: "+this.sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Issue Return List :: "+this.sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -351,6 +335,21 @@ public class IssueReturnInfo extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblIssueReturnList = new TablePaged();
+		tblIssueReturnList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblReturnId.get(ar).getValue().toString();
+				if (!prg.getIssueUse(id))
+				{ addEditWindow("Edit", id, ar+""); }
+				else
+				{
+					cm.showNotification("failure", "Error!", "Issue is in use.");
+					tbCmbAction.get(ar).setEnabled(true);
+				}
+			}
+		});
 
 		tblIssueReturnList.addContainerProperty("Return Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblIssueReturnList.setColumnCollapsed("Return Id", true);
@@ -490,6 +489,12 @@ public class IssueReturnInfo extends VerticalLayout implements View
 		catch(Exception exp)
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
 	}
+
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

@@ -58,27 +58,23 @@ public class EmployeeInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogFilter;
 	private EmployeeInfoGateway eig = new EmployeeInfoGateway();
+	private String formId;
 
 	private CommonMethod cm;
 
 	public EmployeeInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
-		buildTable();
 		addComponents(cBtn, addPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -120,7 +116,7 @@ public class EmployeeInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Employee List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Employee List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -146,6 +142,7 @@ public class EmployeeInformation extends VerticalLayout implements View
 
 		lay.addComponents(txtSearch, ogFilter);
 
+		buildTable();
 		content.addComponents(lay, tblEmployeeList, tblEmployeeList.createControls());
 		pnlTable.setContent(content);
 
@@ -338,5 +335,10 @@ public class EmployeeInformation extends VerticalLayout implements View
 	{ cm.tableClear(tblEmployeeList, tbLblEmployeeId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

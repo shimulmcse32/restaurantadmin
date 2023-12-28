@@ -29,7 +29,7 @@ public class TabRawItemMaster extends HorizontalLayout
 
 	public OptionGroup ogRawItemType;
 	public TextField txtItemCode, txtItemName, txtItemNameAr, txtBarcode;
-	public CommaField txtCostMargin, txtIssueRate;
+	public CommaField txtCostMargin, txtCostPrice;
 	public ComboBox cmbUnit, cmbCategory, cmbVatCategory;
 	public MultiComboBox cmbSupplierName;
 	private Button btnAddUnit, btnAddCategory, btnAddSupplier;
@@ -181,7 +181,7 @@ public class TabRawItemMaster extends HorizontalLayout
 		iim.setRawCategory(cmbCategory.getValue().toString());
 		iim.setRawUnit(cmbUnit.getValue().toString());
 		iim.setVatCategoryId(cmbVatCategory.getValue().toString());
-		iim.setIssueRate(cm.getAmtValue(txtIssueRate));
+		iim.setCostPrice(cm.getAmtValue(txtCostPrice));
 		iim.setCostMargin(cm.getAmtValue(txtCostMargin));
 		iim.setCreatedBy(sessionBean.getUserId());
 	}
@@ -301,14 +301,12 @@ public class TabRawItemMaster extends HorizontalLayout
 
 		group = new CssLayout();
 		group.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-		txtIssueRate = new CommaField();
-		txtIssueRate.setImmediate(true);
-		txtIssueRate.addStyleName(ValoTheme.TEXTAREA_TINY);
-		txtIssueRate.setWidth("50%");
-		txtIssueRate.setRequired(true);
-		txtIssueRate.setRequiredError("This field is required.");
-		txtIssueRate.setDescription("Cost Rate");
-		txtIssueRate.setInputPrompt("Cost Rate");
+		txtCostPrice = new CommaField();
+		txtCostPrice.setImmediate(true);
+		txtCostPrice.addStyleName(ValoTheme.TEXTAREA_TINY);
+		txtCostPrice.setWidth("50%");
+		txtCostPrice.setDescription("Cost Rate");
+		txtCostPrice.setInputPrompt("Cost Rate");
 		grid.addComponent(new Label("Cost Details: "), 0, 8);
 
 		txtCostMargin = new CommaField();
@@ -318,11 +316,12 @@ public class TabRawItemMaster extends HorizontalLayout
 		txtCostMargin.setDescription("Cost Margin On Transfer");
 		txtCostMargin.setMaxLength(2);
 		txtCostMargin.setInputPrompt("Cost Margin");
-		group.addComponents(txtIssueRate, txtCostMargin);
+		group.addComponents(txtCostPrice, txtCostMargin);
 		grid.addComponent(group, 1, 8, 7, 8);
 
 		ogRawItemType = new OptionGroup();
 		ogRawItemType.addItem("Raw");
+		ogRawItemType.addItem("Semi-Cooked");
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
 		ogRawItemType.setDescription("Item Type");
@@ -342,6 +341,6 @@ public class TabRawItemMaster extends HorizontalLayout
 		cmbCategory.setValue(null);
 		cmbUnit.setValue(null);
 		cmbVatCategory.setValue(null);
-		txtIssueRate.setValue("");
+		txtCostPrice.setValue("");
 	}
 }

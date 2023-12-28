@@ -66,7 +66,6 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 	private ArrayList<Label> tbLblStatus = new ArrayList<Label>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private PopupDateField txtFromDate, txtToDate;
 	private ComboBox cmbSupplier, cmbStatus;
@@ -74,9 +73,9 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 	private OptionGroup ogReceiptType;
 
 	private CommonMethod cm;
+	private String formId;
 
 	//Report panel
-	private Panel panelReport;
 	private PopupDateField txtFromDateReport, txtToDateReport;
 	private CommonButton cBtnReport = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogReportTypeReport, ogReportFormatReport;
@@ -85,18 +84,13 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 	public ReceiptAgainstPurchase(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
-		buildTable();
 		addComponents(cBtn, addPanel(), addReportPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
-		loadComboData();
 		addActions();
 	}
 
@@ -131,16 +125,6 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 
 		txtToDateReport.addValueChangeListener(event ->
 		{ loadSupplierData(); });
-
-		tblReceiptList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblReceiptId.get(ar).getValue().toString();
-				addEditWindow("Edit", id, ar+"");
-			}
-		});
 	}
 
 	private void addEditWindow(String addEdit, String receiptId, String ar)
@@ -425,13 +409,6 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 		{ System.out.println("Error in view report: "+ex); }
 	}
 
-	public void enter(ViewChangeEvent event)
-	{
-		loadTableInfo();
-		loadSupplierData();
-		loadComboData();
-	}
-
 	public double totalAmount()
 	{
 		double amt = 0;
@@ -444,8 +421,9 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Receipt List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Receipt List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -504,6 +482,7 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 		hori.addComponents(ogReceiptType, txtFromDate, txtToDate, cmbSupplier,
 				txtSearch, cmbStatus, cBtnS);
 
+		buildTable();
 		content.addComponents(hori, tblReceiptList, tblReceiptList.createControls());
 		pnlTable.setContent(content);
 
@@ -513,6 +492,15 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblReceiptList = new TablePaged();
+		tblReceiptList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblReceiptId.get(ar).getValue().toString();
+				addEditWindow("Edit", id, ar+"");
+			}
+		});
 
 		tblReceiptList.addContainerProperty("Receipt Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblReceiptList.setColumnCollapsed("Receipt Id", true);
@@ -625,8 +613,9 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 	//Report Panel Start
 	private Panel addReportPanel()
 	{
-		panelReport = new Panel("Purchase Status Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Purchase Status Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -706,5 +695,16 @@ public class ReceiptAgainstPurchase extends VerticalLayout implements View
 
 		loadSupplierData();
 		return panelReport;
+	}
+
+	public void enter(ViewChangeEvent event)
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+
+		loadSupplierData();
+		loadComboData();
 	}
 }

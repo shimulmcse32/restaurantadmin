@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptRawItemProfile" language="groovy" pageWidth="595" pageHeight="842" columnWidth="567" leftMargin="14" rightMargin="14" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="1.2396694214876045"/>
+	<property name="ireport.zoom" value="2.196150000000004"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="sql" class="java.lang.String">
@@ -64,7 +64,7 @@
 					<reportElement x="530" y="0" width="36" height="13"/>
 					<box rightPadding="2"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
+						<font size="8" isBold="true"/>
 					</textElement>
 					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ttlCost}]]></textFieldExpression>
 				</textField>
@@ -72,7 +72,7 @@
 					<reportElement x="494" y="0" width="35" height="13"/>
 					<box rightPadding="2"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
+						<font size="8" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Total:]]></text>
 				</staticText>
@@ -268,7 +268,7 @@
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="422" y="0" width="40" height="13"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vProfileUnit}]]></textFieldExpression>
 			</textField>
@@ -282,14 +282,14 @@
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="221" y="0" width="200" height="13"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vProfileItem}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="203" y="0" width="17" height="13"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sl}]]></textFieldExpression>
 			</textField>
@@ -315,7 +315,7 @@
 				<reportElement x="494" y="0" width="35" height="13"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mIssueRate}]]></textFieldExpression>
 			</textField>
@@ -323,7 +323,7 @@
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="1" y="0" width="201" height="13"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9" isBold="true"/>
+					<font size="8" isBold="true"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vMainItem}+" ("+$F{vMainUnit}+") - "+$F{mMainRate}]]></textFieldExpression>
 			</textField>
@@ -337,7 +337,7 @@
 				<reportElement x="463" y="0" width="30" height="13"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mUnitQty1}]]></textFieldExpression>
 			</textField>
@@ -351,7 +351,7 @@
 				<reportElement x="530" y="0" width="36" height="13"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mUnitQty1}*$F{mIssueRate}]]></textFieldExpression>
 			</textField>

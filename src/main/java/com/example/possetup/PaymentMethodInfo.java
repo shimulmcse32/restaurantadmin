@@ -52,23 +52,22 @@ public class PaymentMethodInfo extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogActive;
 
 	private CommonMethod cm;
 	private ItemUnitGateway iug = new ItemUnitGateway();
+	private String formId;
 
 	public PaymentMethodInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel());
 
 		addActions();
@@ -110,7 +109,7 @@ public class PaymentMethodInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Payment Method List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Payment Method List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -295,5 +294,10 @@ public class PaymentMethodInfo extends VerticalLayout implements View
 	{ cm.tableClear(tblPaymentList, tbLblPayId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

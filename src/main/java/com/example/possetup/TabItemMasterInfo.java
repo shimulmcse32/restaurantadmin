@@ -345,7 +345,7 @@ public class TabItemMasterInfo extends HorizontalLayout
 
 		chkInventory = new CheckBox("Inventory");
 		chkInventory.setImmediate(true);
-		chkInventory.setValue(true);
+		//chkInventory.setValue(true);
 		chkInventory.addStyleName(ValoTheme.CHECKBOX_SMALL);
 		chkInventory.setDescription("Save as an inventory item.");
 

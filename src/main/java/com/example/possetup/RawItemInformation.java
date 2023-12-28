@@ -28,6 +28,7 @@ import com.common.share.SessionBean;
 import com.common.share.TablePaged;
 import com.common.share.MessageBox.ButtonType;
 import com.common.share.MessageBox.EventListener;
+import com.common.share.MultiComboBox;
 import com.example.gateway.ItemInfoGateway;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.View;
@@ -65,7 +66,6 @@ public class RawItemInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogStatus, ogType;
@@ -74,27 +74,24 @@ public class RawItemInformation extends VerticalLayout implements View
 	private ItemInfoGateway iig = new ItemInfoGateway();
 
 	//Report panel master
-	private Panel panelReport;
 	private CommonButton cBtnView = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private ComboBox cmbCategory;
 	private OptionGroup ogItemStaus, ogItemType, ogReportFormat;
+	private String formId;
 
 	//Report panel profile
-	/*private Panel panelProfile;
 	private CommonButton cBtnViewPro = new CommonButton("", "", "", "", "", "", "", "View", "");
-	private MultiComboBox cmbItemName;*/
+	private MultiComboBox cmbItemName;
 
 	public RawItemInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-		addComponents(cBtn, addPanel(), addReportMaster()); //addReportProfile())
-		cBtn.btnNew.setEnabled(cm.insert);
+		addComponents(cBtn, addPanel(), addReportMaster(), addReportProfile());
 
 		addActions();
 	}
@@ -116,8 +113,8 @@ public class RawItemInformation extends VerticalLayout implements View
 		cBtnView.btnPreview.addClickListener(event ->
 		{ addValidation(); });
 
-		/*cBtnViewPro.btnPreview.addClickListener(event ->
-		{ addValidationPro(); });*/
+		cBtnViewPro.btnPreview.addClickListener(event ->
+		{ addValidationPro(); });
 
 		ogStatus.addValueChangeListener(event ->
 		{ loadTableInfo(); });
@@ -144,7 +141,7 @@ public class RawItemInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Inventory Item List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Inventory Item List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -163,15 +160,16 @@ public class RawItemInformation extends VerticalLayout implements View
 		ogType = new OptionGroup();
 		ogType.addItem("All");
 		ogType.addItem("Raw");
+		ogType.addItem("Semi-Cooked");
 		ogType.select("All");
 		ogType.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
 		ogType.setDescription("Item Type");
 
 		ogStatus = new OptionGroup();
+		ogStatus.addItem("All");
 		ogStatus.addItem("Active");
 		ogStatus.addItem("Inactive");
-		ogStatus.addItem("All");
 		ogStatus.select("Active");
 		ogStatus.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogStatus.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
@@ -395,7 +393,7 @@ public class RawItemInformation extends VerticalLayout implements View
 	//Report Panel Master Start
 	private Panel addReportMaster()
 	{
-		panelReport = new Panel("Inventory Item(s) Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Inventory Item(s) Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -430,6 +428,7 @@ public class RawItemInformation extends VerticalLayout implements View
 		ogItemType = new OptionGroup();
 		ogItemType.addItem("All");
 		ogItemType.addItem("Raw");
+		ogItemType.addItem("Semi-Cooked");
 		ogItemType.select("All");
 		ogItemType.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogItemType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
@@ -554,9 +553,9 @@ public class RawItemInformation extends VerticalLayout implements View
 	//Report Panel Master End
 
 	//Report Panel Master Start
-	/*private Panel addReportProfile()
+	private Panel addReportProfile()
 	{
-		panelProfile = new Panel("Inventory Item(s) Profile :: "+sessionBean.getCompanyName()+
+		Panel panelProfile = new Panel("Inventory Item(s) Profile :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -587,8 +586,8 @@ public class RawItemInformation extends VerticalLayout implements View
 
 	private void loadSemiCookedItem()
 	{
-		String sql = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode"+
-				" from master.tbRawItemInfo where vItemType = 'Semi-Cooked' order by iCode asc";
+		String sql = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode from master.tbRawItemInfo"+
+				" where vItemType = 'Semi-Cooked' order by iCode asc";
 
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
@@ -646,6 +645,9 @@ public class RawItemInformation extends VerticalLayout implements View
 
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
 		loadCategory();
 	}

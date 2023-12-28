@@ -32,7 +32,7 @@ public class AddEditRawItemInfo extends Window
 
 	private TabSheet tsRawItem = new TabSheet();
 	private TabRawItemMaster tabRawMaster;
-	//private TabRawItemProfile tabRawProfile;
+	private TabRawItemProfile tabRawProfile;
 
 	private CommonMethod cm;
 
@@ -59,19 +59,13 @@ public class AddEditRawItemInfo extends Window
 		cBtn.btnExit.addClickListener(event ->
 		{ close(); });
 
-		/*tabRawMaster.cmbUnit.addValueChangeListener(event ->
-		{
-			if (tabRawMaster.cmbUnit.getValue() != null)
-			{ tabRawProfile.setTableColumn(tabRawMaster.cmbUnit.getValue().toString()); }
-		});*/
-
-		/*tabRawMaster.ogRawItemType.addValueChangeListener(event ->
+		tabRawMaster.ogRawItemType.addValueChangeListener(event ->
 		{
 			String val = tabRawMaster.ogRawItemType.getValue().toString();
 			if (val.equals("Raw"))
 			{ tabRawProfile.tableClear(); }
 			tabRawProfile.setEnabled(!val.equals("Raw"));
-		});*/
+		});
 
 		//To effect immediately
 		tabRawMaster.ogRawItemType.select("Raw");
@@ -95,25 +89,16 @@ public class AddEditRawItemInfo extends Window
 						{
 							if (tabRawMaster.cmbVatCategory.getValue() != null)
 							{
-								if (!tabRawMaster.txtIssueRate.getValue().toString().isEmpty())
+								if (tabRawMaster.ogRawItemType.getValue().toString().equals("Raw") || checkProfile())
 								{
-									//if (tabRawMaster.ogRawItemType.getValue().toString().equals("Raw") || checkProfile())
-									{
-										cBtn.btnSave.setEnabled(false);
-										insertEditData();
-									}
-									/*else
-									{
-										tsRawItem.setSelectedTab(1);
-										//tabRawProfile.tbCmbItemName.get(0).focus();
-										cm.showNotification("warning", "Warning!", "Select profile items.");
-									}*/
+									cBtn.btnSave.setEnabled(false);
+									insertEditData();
 								}
 								else
 								{
-									tsRawItem.setSelectedTab(0);
-									tabRawMaster.txtIssueRate.focus();
-									cm.showNotification("warning", "Warning!", "Provide issue rate.");
+									tsRawItem.setSelectedTab(1);
+									tabRawProfile.tbCmbItemName.get(0).focus();
+									cm.showNotification("warning", "Warning!", "Select profile items.");
 								}
 							}
 							else
@@ -159,7 +144,7 @@ public class AddEditRawItemInfo extends Window
 		}
 	}
 
-	/*private boolean checkProfile()
+	private boolean checkProfile()
 	{
 		boolean ret = false;
 		for (int ar = 0; ar < tabRawProfile.tbCmbItemName.size(); ar++)
@@ -169,7 +154,7 @@ public class AddEditRawItemInfo extends Window
 			{ ret = true; break; }
 		}
 		return ret;
-	}*/
+	}
 
 	private void insertEditData()
 	{
@@ -190,12 +175,12 @@ public class AddEditRawItemInfo extends Window
 						iim.setItemId(itemIdN);
 
 						tabRawMaster.getValue(iim);
-						//tabRawProfile.getValue(iim, flag);
+						tabRawProfile.getValue(iim, flag);
 
 						if (iig.insertEditDataRaw(iim, flag))
 						{
 							tabRawMaster.txtClear();
-							//tabRawProfile.tableClear();
+							tabRawProfile.tableClear();
 							tsRawItem.setSelectedTab(0);
 							tabRawMaster.txtItemCode.focus();
 
@@ -232,10 +217,10 @@ public class AddEditRawItemInfo extends Window
 				tabRawMaster.cmbCategory.select(iim.getRawCategory());
 				tabRawMaster.cmbUnit.select(iim.getRawUnit());
 				tabRawMaster.cmbVatCategory.select(iim.getVatCategoryId());
-				tabRawMaster.txtIssueRate.setValue(iim.getIssueRate());
+				tabRawMaster.txtCostPrice.setValue(iim.getCostPrice());
 				tabRawMaster.txtCostMargin.setValue(iim.getCostMargin());
 				setEditSupplier(iim.getSupplierIds());
-				//setEditProfile();
+				setEditProfile();
 			}
 			else
 			{ cm.showNotification("failure", "Error!", "Couldn't find information."); }
@@ -255,7 +240,7 @@ public class AddEditRawItemInfo extends Window
 		}
 	}
 
-	/*private void setEditProfile()
+	private void setEditProfile()
 	{
 		String sql = "select vProfileId, vItemIdProfile, mUnitQty1 from master.tbRawItemProfile"+
 				" where vItemId = '"+rawItemId+"' order by iAutoId";
@@ -271,7 +256,7 @@ public class AddEditRawItemInfo extends Window
 			ar++;
 		}
 		tabRawProfile.action = true;
-	}*/
+	}
 
 	private VerticalLayout buildLayout()
 	{
@@ -284,10 +269,10 @@ public class AddEditRawItemInfo extends Window
 		tsRawItem.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
 
 		tabRawMaster = new TabRawItemMaster(sessionBean, flag);
-		//tabRawProfile = new TabRawItemProfile(sessionBean, flag);
+		tabRawProfile = new TabRawItemProfile(sessionBean, flag);
 
 		tsRawItem.addTab(tabRawMaster, "Master Information", FontAwesome.DOWNLOAD, 0);
-		//tsRawItem.addTab(tabRawProfile, "Profile Information", FontAwesome.BOOK, 1);
+		tsRawItem.addTab(tabRawProfile, "Profile Information", FontAwesome.BOOK, 1);
 
 		//tabRawProfile.setVisible(false);
 
@@ -307,6 +292,9 @@ public class AddEditRawItemInfo extends Window
 		allComp.add(tabRawMaster.cmbCategory);
 		allComp.add(tabRawMaster.cmbUnit);
 		allComp.add(tabRawMaster.cmbVatCategory);
+		allComp.add(tabRawMaster.txtCostPrice);
+		allComp.add(tabRawMaster.txtCostMargin);
+		allComp.add(tabRawMaster.ogRawItemType);
 		allComp.add(cBtn.btnSave);
 
 		new FocusMoveByEnter(this, allComp);

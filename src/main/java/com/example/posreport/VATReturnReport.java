@@ -37,7 +37,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class VATReport extends VerticalLayout implements View
+public class VATReturnReport extends VerticalLayout implements View
 {
 	private SessionBean sessionBean;
 
@@ -45,16 +45,14 @@ public class VATReport extends VerticalLayout implements View
 	private CommonButton cBtnSum = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateSum, txtToDateSum;
 	private OptionGroup ogReportFormatSum;
-	private Panel panelSum;
 
 	//VAT Details Report
 	private CommonButton cBtnDet = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateDet, txtToDateDet;
 	private OptionGroup ogReportFormatDet, ogReportTypeDet;
-	private Panel panelDet;
 	private CommonMethod cm;
 
-	public VATReport(SessionBean sessionBean, String formId)
+	public VATReturnReport(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
 		cm = new CommonMethod(this.sessionBean);
@@ -78,7 +76,7 @@ public class VATReport extends VerticalLayout implements View
 	//VAT Summary Report Start
 	private Panel addVatReturnSum()
 	{
-		panelSum = new Panel("VAT Return Report(Summary) :: "+sessionBean.getCompanyName()+
+		Panel panelSum = new Panel("VAT Return Report(Summary) :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -207,7 +205,7 @@ public class VATReport extends VerticalLayout implements View
 	//VAT Details Report Start
 	private Panel addVatReturnDet()
 	{
-		panelDet = new Panel("VAT Return Report(Details) :: "+sessionBean.getCompanyName()+
+		Panel panelDet = new Panel("VAT Return Report(Details) :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);

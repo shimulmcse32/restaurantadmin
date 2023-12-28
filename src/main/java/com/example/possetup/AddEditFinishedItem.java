@@ -71,13 +71,18 @@ public class AddEditFinishedItem extends Window
 		{
 			boolean chk = tabItemMaster.chkInventory.getValue().booleanValue();
 			tabItemInventory.setEnabled(chk);
+			tabItemInventory.cmbRawCategory.setRequired(chk);
+			tabItemInventory.cmbRawCategory.setRequiredError(chk? "This field is required":"");
+
+			tabItemInventory.cmbRawUnit.setRequired(chk);
+			tabItemInventory.cmbRawUnit.setRequiredError(chk? "This field is required":"");
 		});
 
 		tabItemMaster.cmbPackageName.addValueChangeListener(event -> setUnitToTable());
 
 		//Set default size
 		tabItemMaster.chkOnlineMenu.setValue(true);
-		tabItemMaster.chkInventory.setValue(true);
+		//tabItemMaster.chkInventory.setValue(true);
 		tabItemMaster.cmbPackageName.select("1");
 
 		if (flag.equals("Edit"))
@@ -113,7 +118,7 @@ public class AddEditFinishedItem extends Window
 		catch (Exception e)
 		{ System.out.println(e); }
 	}
-	
+
 	private void checkModifier()
 	{
 		String type = tabItemMaster.ogItemType.getValue().toString(); 
@@ -145,8 +150,11 @@ public class AddEditFinishedItem extends Window
 								{
 									if (tabItemMaster.getTableData())
 									{
-										cBtn.btnSave.setEnabled(false);
-										insertEditData();
+										if (!tabItemMaster.chkInventory.getValue().booleanValue() || checkInventory())
+										{
+											cBtn.btnSave.setEnabled(false);
+											insertEditData();
+										}
 									}
 									else
 									{
@@ -203,6 +211,29 @@ public class AddEditFinishedItem extends Window
 			tabItemMaster.cmbBranchName.focus();
 			cm.showNotification("warning", "Warning!", "Select branch name.");
 		}
+	}
+
+	private boolean checkInventory()
+	{
+		boolean ret = false;
+		if (tabItemInventory.cmbRawCategory.getValue() != null)
+		{
+			if (tabItemInventory.cmbRawUnit.getValue() != null)
+			{ ret = true; }
+			else
+			{
+				tsItem.setSelectedTab(3);
+				tabItemInventory.cmbRawUnit.focus();
+				cm.showNotification("warning", "Warning!", "Select raw unit.");
+			}
+		}
+		else
+		{
+			tsItem.setSelectedTab(3);
+			tabItemInventory.cmbRawCategory.focus();
+			cm.showNotification("warning", "Warning!", "Select raw category.");
+		}
+		return ret;
 	}
 
 	private void insertEditData()
@@ -317,6 +348,7 @@ public class AddEditFinishedItem extends Window
 		tabItemAddModif = new TabItemAddModifier(sessionBean, flag);
 		tabItemProfile = new TabItemProfileInfo(sessionBean, flag);
 		tabItemInventory = new TabItemInventory(sessionBean);
+		tabItemInventory.setEnabled(false);
 
 		tsItem.addTab(tabItemMaster, "Master Information", FontAwesome.DOWNLOAD, 0);
 		tsItem.addTab(tabItemAddModif, "Additional and Modifier's", FontAwesome.PLUS, 1);

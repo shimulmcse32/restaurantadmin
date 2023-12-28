@@ -65,8 +65,8 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	private ArrayList<Label> tbLblStatus = new ArrayList<Label>();
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
+	
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbSupplierName;
 	private PopupDateField txtFromDate, txtToDate;
@@ -74,9 +74,9 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private PurchaseReturnGateway prg = new PurchaseReturnGateway();
+	private String formId;
 
 	///Report panel  purchases
-	private Panel panelReport;
 	private PopupDateField txtFromDateReport, txtToDateReport;
 	private ComboBox cmbSupplierForReport;
 	private MultiComboBox cmbReturnNo;
@@ -85,14 +85,12 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	public PurchaseReturnInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReportPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -129,15 +127,6 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 		cmbSupplierForReport.addValueChangeListener(event ->
 		{ loadReturnNo(); });
 
-		tblPurchaseReturnList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblReturnId.get(ar).getValue().toString();
-				addEditWindow("Edit", id, ar+"");
-			}
-		});
 		loadSupplier();
 		checkReportSupplierLoad();
 	}
@@ -481,7 +470,7 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	//Table Panel start 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Purchase Return List :: "+this.sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Purchase Return List :: "+this.sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -535,6 +524,15 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblPurchaseReturnList = new TablePaged();
+		tblPurchaseReturnList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblReturnId.get(ar).getValue().toString();
+				addEditWindow("Edit", id, ar+"");
+			}
+		});
 
 		tblPurchaseReturnList.addContainerProperty("Return Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblPurchaseReturnList.setColumnCollapsed("Return Id", true);
@@ -678,7 +676,7 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	//Report Panel Purchase return Start
 	private Panel addPurchasePanel()
 	{
-		panelReport = new Panel("Purchase Return Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Purchase Return Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		panelReport.setHeight("300px");
 		HorizontalLayout content = new HorizontalLayout();
@@ -740,5 +738,10 @@ public class PurchaseReturnInfo extends VerticalLayout implements View
 	}
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

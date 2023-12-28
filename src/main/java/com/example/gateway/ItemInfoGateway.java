@@ -263,7 +263,7 @@ public class ItemInfoGateway
 					//System.out.println("Type: "+iim.getItemTypeRaw());
 					String prc = "exec trans.prcRawItemFromMenu '"+iim.getItemTypeRaw()+"', '"+iim.getItemId()+"',"+
 							" '"+iim.getCreatedBy()+"', '"+iim.getRawCategory()+"', '"+iim.getRawUnit()+"',"+
-							" '"+iim.getItemName()+"', '"+iim.getCostMargin()+"', '"+iim.getIssueRate()+"'";
+							" '"+iim.getItemName()+"', '"+iim.getCostMargin()+"', '"+iim.getCostPrice()+"'";
 					SQLQuery insertRaw = session.createSQLQuery(prc);
 					insertRaw.executeUpdate();
 				}
@@ -275,14 +275,12 @@ public class ItemInfoGateway
 			}
 			else if (flag.equals("Edit"))
 			{
-				String sql = "update master.tbFinishedItemInfo set vBranchIds = :branchId, vItemName = :itemName,"+
-						" vItemType = :itemType, vItemNameAr = :itemNameArabic, vItemNameKitchen = :itemKitchenName,"+
-						" vBarcode = :barcode, vCategoryId = :categoryId, vSalesTypeIds = :salesTypeId, vVatCatId ="+
-						" :vatCatId, vSupplierIds = :supplierId, vVatOption = :vatOption, vCompanyId = :itemCompanyId,"+
-						" vUnitIds = :unitIds, vItemImage = :itemImage, vDescription = :description, vImagePath = :imagePath,"+
-						" vModifiedBy = :modifiedBy, dModifiedDate = getDate(), vModifierId = :modifierId, iOnlineMenu ="+
-						" :onlineMenu, iInventory = :inventory, iSynced = 0, vSyncedMacId = '', vItemColor = :itemColor where"+
-						" vItemId = :itemId";
+				String sql = "update master.tbFinishedItemInfo set vBranchIds = :branchId, vItemName = :itemName, vItemType = :itemType,"+
+						" vItemNameAr = :itemNameArabic, vItemNameKitchen = :itemKitchenName, vBarcode = :barcode, vCategoryId = :categoryId,"+
+						" vSalesTypeIds = :salesTypeId, vVatCatId = :vatCatId, vSupplierIds = :supplierId, vVatOption = :vatOption, vCompanyId"+
+						" = :itemCompanyId, vUnitIds = :unitIds, vItemImage = :itemImage, vDescription = :description, vImagePath = :imagePath,"+
+						" vModifiedBy = :modifiedBy, dModifiedDate = getDate(), vModifierId = :modifierId, iOnlineMenu = :onlineMenu, iInventory"+
+						" = :inventory, iSynced = 0, vSyncedMacId = '', vItemColor = :itemColor where vItemId = :itemId";
 				SQLQuery insert = session.createSQLQuery(sql);
 				insert.setParameter("branchId", iim.getBranchIds());
 				insert.setParameter("itemName", iim.getItemName());
@@ -323,7 +321,7 @@ public class ItemInfoGateway
 				{
 					String prc = "exec trans.prcRawItemFromMenu '"+iim.getItemTypeRaw()+"', '"+iim.getItemId()+"',"+
 							" '"+iim.getCreatedBy()+"', '"+iim.getRawCategory()+"', '"+iim.getRawUnit()+"',"+
-							" '"+iim.getItemName()+"', '"+iim.getCostMargin()+"', '"+iim.getIssueRate()+"'";
+							" '"+iim.getItemName()+"', '"+iim.getCostMargin()+"', '"+iim.getCostPrice()+"'";
 					SQLQuery insertRaw = session.createSQLQuery(prc);
 					insertRaw.executeUpdate();
 				}
@@ -371,17 +369,17 @@ public class ItemInfoGateway
 				insert.setParameter("vatCatId", iim.getVatCategoryId());
 				insert.setParameter("supplierId", iim.getSupplierIds());
 				insert.setParameter("unitId", iim.getRawUnit());
-				insert.setParameter("issueRate", iim.getIssueRate());
+				insert.setParameter("issueRate", iim.getCostPrice());
 				insert.setParameter("costMargin", iim.getCostMargin());
 				insert.setParameter("createdBy", iim.getCreatedBy());
 				insert.setParameter("modifiedBy", iim.getCreatedBy());
 				insert.executeUpdate();
 
-				/*if (!iim.getReceipeSql().isEmpty() && iim.getReceipeSql() != null)
+				if (!iim.getReceipeSql().isEmpty() && iim.getReceipeSql() != null)
 				{
 					SQLQuery insertReceipe = session.createSQLQuery(iim.getReceipeSql());
 					insertReceipe.executeUpdate();
-				}*/
+				}
 			}
 			else if (flag.equals("Edit"))
 			{
@@ -399,18 +397,18 @@ public class ItemInfoGateway
 				insert.setParameter("vatCatId", iim.getVatCategoryId());
 				insert.setParameter("supplierId", iim.getSupplierIds());
 				insert.setParameter("unitId", iim.getRawUnit());
-				insert.setParameter("issueRate", iim.getIssueRate());
+				insert.setParameter("issueRate", iim.getCostPrice());
 				insert.setParameter("costMargin", iim.getCostMargin());
 				insert.setParameter("modifiedBy", iim.getCreatedBy());
 				//where clause
 				insert.setParameter("itemId", iim.getItemId());
 				insert.executeUpdate();
 
-				/*if (!iim.getReceipeSql().isEmpty() && iim.getReceipeSql() != null && iim.getReceipeSqlChange())
+				if (!iim.getReceipeSql().isEmpty() && iim.getReceipeSql() != null && iim.getReceipeSqlChange())
 				{
 					SQLQuery insertReceipe = session.createSQLQuery(iim.getReceipeSql());
 					insertReceipe.executeUpdate();
-				}*/
+				}
 			}
 			tx.commit();
 			ret = true;
@@ -535,7 +533,7 @@ public class ItemInfoGateway
 				iim.setItemTypeRaw(element[0].toString());
 				iim.setRawCategory(element[1].toString());
 				iim.setRawUnit(element[2].toString());
-				iim.setIssueRate(Double.parseDouble(element[3].toString()));
+				iim.setCostPrice(Double.parseDouble(element[3].toString()));
 				iim.setCostMargin(Double.parseDouble(element[4].toString()));
 			}
 		}
@@ -568,7 +566,7 @@ public class ItemInfoGateway
 				iim.setVatCategoryId(element[5].toString());
 				iim.setSupplierIds(element[6].toString());
 				iim.setRawUnit(element[7].toString());
-				iim.setIssueRate(Double.parseDouble(element[8].toString()));
+				iim.setCostPrice(Double.parseDouble(element[8].toString()));
 				iim.setCostMargin(Double.parseDouble(element[9].toString()));
 				iim.setItemType(element[10].toString());
 			}

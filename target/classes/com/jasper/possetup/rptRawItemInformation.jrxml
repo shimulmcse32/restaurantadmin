@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptRawItemInformation" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="1.6500000000000032"/>
+	<property name="ireport.zoom" value="2.1961500000000056"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="sql" class="java.lang.String">
@@ -61,7 +61,7 @@
 					<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="12" y="1" width="371" height="14"/>
 					<box leftPadding="0"/>
 					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="true"/>
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA["Category: "+$F{vCategoryName}]]></textFieldExpression>
 				</textField>
@@ -107,12 +107,12 @@
 		</band>
 	</title>
 	<pageHeader>
-		<band height="22">
+		<band height="21">
 			<rectangle radius="10">
-				<reportElement x="181" y="3" width="192" height="14"/>
+				<reportElement x="181" y="2" width="192" height="14"/>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="2" width="555" height="15"/>
+				<reportElement x="0" y="1" width="555" height="15"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="SansSerif" isBold="true"/>
 				</textElement>
@@ -247,83 +247,83 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="14" splitType="Stretch">
+		<band height="13" splitType="Stretch">
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="199" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="199" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement positionType="Float" x="0" y="13" width="555" height="1"/>
+				<reportElement positionType="Float" x="0" y="12" width="555" height="1"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="270" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="270" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="554" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="554" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="271" y="0" width="45" height="13"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="271" y="0" width="45" height="12"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vUnitName}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="523" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="523" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="316" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="316" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="200" y="0" width="70" height="13"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="200" y="0" width="70" height="12"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vVatCatName}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="384" y="0" width="139" height="13"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="384" y="0" width="139" height="12"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vSupplierName}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="21" y="0" width="178" height="13"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="21" y="0" width="178" height="12"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vItemCode}+' - '+$F{vItemName}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="524" y="0" width="30" height="13"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="524" y="0" width="30" height="12"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
 					<font size="8" isBold="false"/>
@@ -331,43 +331,43 @@
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{iActive}==1?"Active":"Inactive"]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="1" y="0" width="19" height="13"/>
+				<reportElement x="1" y="0" width="19" height="12"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sl}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="20" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="20" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="352" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="352" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToBandHeight" x="383" y="0" width="1" height="14"/>
+				<reportElement stretchType="RelativeToBandHeight" x="383" y="0" width="1" height="13"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<textField pattern="#,##0.000">
-				<reportElement x="317" y="0" width="35" height="13"/>
+				<reportElement x="317" y="0" width="35" height="12"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mIssueRate}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00">
-				<reportElement x="353" y="0" width="30" height="13"/>
+				<reportElement x="353" y="0" width="30" height="12"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mCostMargin}]]></textFieldExpression>
 			</textField>

@@ -65,7 +65,6 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbSupplierName, cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -73,26 +72,23 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private PurchaseOrderGateway pog = new PurchaseOrderGateway();
+	private String formId;
 
 	//Purchase order report
-	private Panel panelReport;
-	private PopupDateField txtReportFromDate, txtReportToDate;
-	private ComboBox cmbSupplierForReport;
-	private MultiComboBox cmbOrderNo;
+	private PopupDateField txtFromDateReport, txtToDateReport;
+	private MultiComboBox cmbSupplierReport, cmbOrderNoReport;
 	private CommonButton cBtnV = new CommonButton("", "", "", "", "", "", "", "View", "");
 
 	public PurchaseOrderInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReport());
 
-		cBtn.btnNew.setEnabled(cm.insert);
 		addActions();
 	}
 
@@ -113,10 +109,10 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		cBtnV.btnPreview.addClickListener(event ->
 		{ addValidation(); });
 
-		txtReportFromDate.addValueChangeListener(event ->
+		txtFromDateReport.addValueChangeListener(event ->
 		{ loadReportSupplier(); });
 
-		txtReportToDate.addValueChangeListener(event ->
+		txtToDateReport.addValueChangeListener(event ->
 		{ loadReportSupplier(); });
 
 		txtFromDate.addValueChangeListener(event ->
@@ -125,31 +121,48 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		txtToDate.addValueChangeListener(event ->
 		{ loadSupplier(); });
 
-		cmbSupplierForReport.addValueChangeListener(event ->
+		cmbSupplierReport.addValueChangeListener(event ->
 		{ loadOrderNo(); });
 
 		loadSupplier();
 		loadReportSupplier();
 	}
 
+	private void addEditWindow(String addEdit, String orderId, String ar)
+	{
+		AddEditPurchaseOrder win = new AddEditPurchaseOrder(sessionBean, addEdit, orderId);
+		getUI().addWindow(win);
+		win.center();
+		win.addCloseShortcut(KeyCode.ESCAPE, null);
+		win.focus();
+		win.addCloseListener(event ->
+		{
+			if (!ar.isEmpty())
+			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
+			cBtn.btnNew.setEnabled(true);
+			loadTableInfo();
+			loadReportSupplier();
+		});
+	}
+
 	private void loadSupplier()
 	{
 		cmbSupplierName.removeAllItems();
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
+		String fmDate = cm.dfDb.format(txtFromDate.getValue());
 		String toDate = cm.dfDb.format(txtToDate.getValue());
 
-		String sqlC = "select distinct a.vSupplierId, b.vSupplierName, dbo.funGetNumeric(b.vSupplierCode) iCode from" + 
-				" trans.tbPurchaseOrderInfo a inner join master.tbSupplierMaster b on b.vSupplierId = a.vSupplierId"+
-				" where a.dOrderDate between '"+fromDate+"' and '"+toDate+"' order by iCode asc";
-		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
+		String sql = "select distinct sup.vSupplierId, sup.vSupplierCode, sup.vSupplierName, dbo.funGetNumeric(sup.vSupplierCode) iCode"+
+				" from trans.tbPurchaseOrderInfo poi, master.tbSupplierMaster sup where poi.vSupplierId = sup.vSupplierId and poi.dOrderDate"+
+				" between '"+fmDate+"' and '"+toDate+"' order by iCode asc";
+		//System.out.println(sql);
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 			cmbSupplierName.addItem(element[0].toString());
-			cmbSupplierName.setItemCaption(element[0].toString(), element[2].toString()+" - "+element[1].toString());
+			cmbSupplierName.setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
 		}
 
-		String sqlStatus = "select vStatusId, vStatusName from master.tbAllStatus where iActive = 1 and"+
-				" vFlag = 'st' order by vStatusName";
+		String sqlStatus = "select vStatusId, vStatusName from master.tbAllStatus where iActive = 1 and vFlag = 'st' order by vStatusName";
 		for (Iterator<?> iter = cm.selectSql(sqlStatus).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -158,192 +171,87 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		}
 	}
 
-	private void addEditWindow(String addEdit, String orderId, String ar)
-	{
-		if (checkOrder(orderId))
-		{
-			AddEditPurchaseOrder win = new AddEditPurchaseOrder(sessionBean, addEdit, orderId);
-			getUI().addWindow(win);
-			win.center();
-			win.addCloseShortcut(KeyCode.ESCAPE, null);
-			win.focus();
-			win.addCloseListener(event ->
-			{
-				if (!ar.isEmpty())
-				{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
-				cBtn.btnNew.setEnabled(true);
-				loadTableInfo();
-				loadReportSupplier();
-			});
-		}
-	}
-
-	private void loadTableInfo()
-	{
-		String supplier = cmbSupplierName.getValue() == null? "%":cmbSupplierName.getValue().toString();
-		String search = "%"+txtSearch.getValue().toString()+"%";
-		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
-		String toDate = cm.dfDb.format(txtToDate.getValue());
-		tableClear();
-		int i = 0;
-		try
-		{
-			String sql = "select pin.vOrderId, pin.vOrderNo, pin.dOrderDate, pin.dDeliveryDate, (select sm.vSupplierName"+
-					" from master.tbSupplierMaster sm where sm.vSupplierId = pin.vSupplierId) vSupplierName, pin.vRemarks,"+
-					" (select isnull(sum(mNetAmount),0) from trans.tbPurchaseOrderDetails where vOrderId = pin.vOrderId)Amount,"+
-					" pin.iActive, pin.vStatusId, ast.vStatusName from trans.tbPurchaseOrderInfo pin, master.tbAllStatus ast"+
-					" where vOrderNo like '"+search+"' and vSupplierId like '"+supplier+"' and pin.vStatusId = ast.vStatusId"+
-					" and pin.dOrderDate between '"+fromDate+"' and '"+toDate+"' and pin.vStatusId like '"+status+"' and"+
-					" pin.vBranchId = '"+sessionBean.getBranchId()+"' order by pin.dOrderDate, pin.iAutoId desc";
-			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-			{
-				Object[] element = (Object[]) iter.next();
-
-				if (tbLblOrderId.size() <= i)
-				{ tableRowAdd(i); }
-
-				tbLblOrderId.get(i).setValue(element[0].toString());
-				tbLblOrderNo.get(i).setValue(element[1].toString());
-				tbLblOrderDate.get(i).setValue(cm.dfBd.format(element[2]));
-				tbLblDeliveryDate.get(i).setValue(cm.dfBd.format(element[3]));
-				tbLblSupplierName.get(i).setValue(element[4].toString());
-				tbLblStatus.get(i).setValue(element[9].toString());
-				tbLblAmount.get(i).setValue(cm.setComma(Double.parseDouble(element[6].toString())));
-				tbChkActive.get(i).setValue((element[7].toString().equals("1")? true:false));
-				tbChkActive.get(i).setEnabled(false);
-				if (element[8].toString().equals("S6"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Approve");
-					tbCmbAction.get(i).removeItem("Purchase");
-				}
-				if (element[8].toString().equals("S7"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Cancel");
-					tbCmbAction.get(i).removeItem("Approve");
-					tbCmbAction.get(i).removeItem("Purchase");
-				}
-				i++;
-			}
-			tblOrderList.nextPage();
-			tblOrderList.previousPage();
-
-			if (i == 0)
-			{ cm.showNotification("warning", "Sorry!", "No data found."); }
-			totalAmount();
-		}
-		catch (Exception e)
-		{ System.out.println(e); }
-	}
-
-	private void tableClear()
-	{ cm.tableClear(tblOrderList, tbLblOrderId); }
-
-	private double totalAmount()
-	{
-		double amt = 0;
-		for (int i=0; i<tbLblOrderId.size(); i++)
-		{ amt += cm.getAmtValue(tbLblAmount.get(i)); }
-		tblOrderList.setColumnFooter("Amount", cm.setComma(amt));
-		tblOrderList.setColumnAlignment("Amount", Align.RIGHT);		
-		return amt;
-	}
-
 	private void ActiveInactiveSelectOrder(String orderId, int ar)
 	{
-		if (checkOrder(orderId))
+		MessageBox mb = new MessageBox(getUI(), "Are you sure?",
+				MessageBox.Icon.QUESTION, "Do you want to save information?",
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
+		mb.show(new EventListener()
 		{
-			MessageBox mb = new MessageBox(getUI(), "Are you sure?",
-					MessageBox.Icon.QUESTION, "Do you want to save information?",
-					new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
-					new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
-			mb.show(new EventListener()
+			public void buttonClicked(ButtonType buttonType)
 			{
-				public void buttonClicked(ButtonType buttonType)
+				if (buttonType == ButtonType.YES)
 				{
-					if (buttonType == ButtonType.YES)
+					if (pog.activeInactiveData(orderId, sessionBean.getUserId()))
 					{
-						if (pog.activeInactiveData(orderId, sessionBean.getUserId()))
-						{
-							tbChkActive.get(ar).setValue(!tbChkActive.get(ar).getValue().booleanValue());
-							cm.showNotification("success", "Successfull!", "All information updated successfully.");
-							loadTableInfo();
-						}
-						else
-						{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
+						tbChkActive.get(ar).setValue(!tbChkActive.get(ar).getValue().booleanValue());
+						cm.showNotification("success", "Successfull!", "All information updated successfully.");
+						loadTableInfo();
 					}
+					else
+					{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
 				}
-			});
-		}
+			}
+		});
 	}
 
 	private void PurchaseOrderPurchaseWindow(String orderId, String ar)
 	{
-		if (checkOrder(orderId))
+		OrderToPurchase win = new OrderToPurchase(sessionBean, orderId);
+		getUI().addWindow(win);
+		win.center();
+		win.setModal(true);
+		win.addCloseShortcut(KeyCode.ESCAPE, null);
+		win.focus();
+		win.addCloseListener(event ->
 		{
-			OrderToPurchase win = new OrderToPurchase(sessionBean, orderId);
-			getUI().addWindow(win);
-			win.center();
-			win.setModal(true);
-			win.addCloseShortcut(KeyCode.ESCAPE, null);
-			win.focus();
-			win.addCloseListener(event ->
-			{
-				if (!ar.isEmpty())
-				{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
-				cBtn.btnNew.setEnabled(true);
-				loadTableInfo();
-			});
-		}
+			if (!ar.isEmpty())
+			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
+			cBtn.btnNew.setEnabled(true);
+			loadTableInfo();
+		});
 	}
 
-	private void TransactionCancelWindow(String orderId, String ar)
+	private void TransCancelWindow(String orderId, String ar)
 	{
-		if (checkOrder(orderId))
+		TransactionCancel win = new TransactionCancel(sessionBean, orderId, "Purchase Order");
+		getUI().addWindow(win);
+		win.center();
+		win.setModal(true);
+		win.addCloseShortcut(KeyCode.ESCAPE, null);
+		win.focus();
+		win.addCloseListener(event ->
 		{
-			TransactionCancel win = new TransactionCancel(sessionBean, orderId, "Purchase Order");
-			getUI().addWindow(win);
-			win.center();
-			win.setModal(true);
-			win.addCloseShortcut(KeyCode.ESCAPE, null);
-			win.focus();
-			win.addCloseListener(event ->
-			{
-				if (!ar.isEmpty())
-				{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
-				loadTableInfo();
-			});
-		}
+			if (!ar.isEmpty())
+			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
+			loadTableInfo();
+		});
 	}
 
-	private void TransactionApproveWindow(String orderId, String ar)
+	private void TransApproveWindow(String orderId, String ar)
 	{
-		if (checkOrder(orderId))
+		MessageBox mb = new MessageBox(getUI(), "Are you sure?",
+				MessageBox.Icon.QUESTION, "Do you want to approve information?",
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
+		mb.show(new EventListener()
 		{
-			MessageBox mb = new MessageBox(getUI(), "Are you sure?",
-					MessageBox.Icon.QUESTION, "Do you want to approve information?",
-					new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
-					new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
-			mb.show(new EventListener()
+			public void buttonClicked(ButtonType buttonType)
 			{
-				public void buttonClicked(ButtonType buttonType)
+				if (buttonType == ButtonType.YES)
 				{
-					if (buttonType == ButtonType.YES)
+					TransAppCanGateway tacm = new TransAppCanGateway();
+					if (tacm.TransactionApprove(orderId, sessionBean.getUserId(), "Purchase Order"))
 					{
-						TransAppCanGateway tacm = new TransAppCanGateway();
-						if (tacm.TransactionApprove(orderId, sessionBean.getUserId(), "Purchase Order"))
-						{
-							cm.showNotification("success", "Successfull!", "All information saved successfully.");
-							loadTableInfo();
-						}
-						else
-						{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
+						cm.showNotification("success", "Successfull!", "All information saved successfully.");
+						loadTableInfo();
 					}
+					else
+					{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
 				}
-			});
-		}
+			}
+		});
 	}
 
 	private boolean checkOrder(String orderId)
@@ -352,61 +260,66 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		if (!pog.getOrderUse(orderId))
 		{ ret = true; }
 		else
-		{ cm.showNotification("warning", "Warning!", "Order is in use."); }
+		{ cm.showNotification("warning", "Warning!", "Order is in use in purchase information."); }
 		return ret;
 	}
 
 	private void loadReportSupplier()
 	{
-		cmbSupplierForReport.removeAllItems(); 
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());
+		cmbSupplierReport.removeAllItems(); 
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue());
+		String branId = sessionBean.getBranchId();
 
-		String sql = "select distinct a.vSupplierId, b.vSupplierName, dbo.funGetNumeric(b.vSupplierCode) iCode" + 
-				" from trans.tbPurchaseOrderInfo a inner join master.tbSupplierMaster b on b.vSupplierId = a.vSupplierId"+
-				" where dOrderDate between '"+fromDate+"' and '"+toDate+"' and a.vBranchId = '"+sessionBean.getBranchId()+"'"+
-				" order by iCode asc";
+		String sql = "select distinct poi.vSupplierId, sup.vSupplierCode, sup.vSupplierName, dbo.funGetNumeric(sup.vSupplierCode) iCode from"+
+				" trans.tbPurchaseOrderInfo poi, master.tbSupplierMaster sup where poi.vSupplierId = sup.vSupplierId and dOrderDate between"+
+				" '"+fmDate+"' and '"+toDate+"' and poi.vBranchId = '"+branId+"' order by iCode asc";
+		//System.out.println(sql);
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
-			cmbSupplierForReport.addItem(element[0].toString());
-			cmbSupplierForReport.setItemCaption(element[0].toString(), element[2].toString()+" - "+element[1].toString());
+			cmbSupplierReport.addItem(element[0].toString());
+			cmbSupplierReport.setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
 		}
 	}
 
 	private void loadOrderNo()
 	{
-		cmbOrderNo.removeAllItems();
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());
-		String supplierIds = cmbSupplierForReport.getValue() == null? "0":cmbSupplierForReport.getValue().toString();
+		cmbOrderNoReport.removeAllItems();
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue());
+		String suppId = cm.getMultiComboValue(cmbSupplierReport);
+		String branId = sessionBean.getBranchId();
 
-		String sql = "select vOrderId, vOrderNo from trans.tbPurchaseOrderInfo where vSupplierId like '"+supplierIds+"' and"+
-				" dOrderDate between '"+fromDate+"' and '"+toDate+"' and vBranchId = '"+sessionBean.getBranchId()+"' order by vOrderNo";
+		String sql = "select poi.vOrderId, poi.vOrderNo, convert(varchar(10), poi.dOrderDate, 105) dDate from trans.tbPurchaseOrderInfo poi,"+
+				" master.tbAllStatus ast where poi.vStatusId = ast.vStatusId and poi.vSupplierId in (select Item from dbo.Split('"+suppId+"'))"+
+				" and dOrderDate between '"+fmDate+"' and '"+toDate+"' and vBranchId = '"+branId+"' order by vOrderNo, dOrderDate desc";
+		//System.out.println(sql);
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 
-			cmbOrderNo.addItem(element[0].toString());
-			cmbOrderNo.setItemCaption(element[0].toString(), element[1].toString());
+			cmbOrderNoReport.addItem(element[0].toString());
+			cmbOrderNoReport.setItemCaption(element[0].toString(),
+					element[1].toString()+" ("+element[2].toString()+")"+" ("+element[3].toString()+")");
 		}
 	}
 
 	private void addValidation()
 	{
-		if (txtReportFromDate.getValue() != null)
+		if (txtFromDateReport.getValue() != null)
 		{
-			if (txtReportToDate.getValue() != null)
+			if (txtToDateReport.getValue() != null)
 			{ viewReport(""); }
 			else
 			{
-				txtReportToDate.focus();
+				txtToDateReport.focus();
 				cm.showNotification("warning", "Warning!", "Select to date.");
 			}
 		}
 		else
 		{
-			txtReportFromDate.focus();
+			txtFromDateReport.focus();
 			cm.showNotification("warning", "Warning!", "Select from date.");
 		}
 	}
@@ -414,8 +327,7 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 	public void viewReport(String orderIds)
 	{
 		String reportSource = "", sql = "";
-		String orderId = cmbOrderNo.getValue().toString().replace("]", "").replace("[", "").trim();
-		orderIds = orderIds.isEmpty()? orderId:orderIds;
+		orderIds = orderIds.isEmpty()? cm.getMultiComboValue(cmbOrderNoReport):orderIds;
 		try
 		{
 			HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -456,7 +368,7 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Purchase Order List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Purchase Order List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -640,26 +552,25 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 					{ if (checkOrder(orderId)) { addEditWindow("Edit", orderId, ar+""); } }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Active/Inactive"))
-					{ ActiveInactiveSelectOrder(orderId, ar); }
+					{ if (checkOrder(orderId)) { ActiveInactiveSelectOrder(orderId, ar); } }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Preview"))
 					{ viewReport(orderId); }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Purchase"))
-					{ PurchaseOrderPurchaseWindow(orderId, ar+""); }
+					{ if (checkOrder(orderId)) { PurchaseOrderPurchaseWindow(orderId, ar+""); } }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Cancel"))
-					{ TransactionCancelWindow(orderId, ar+""); }
+					{ if (checkOrder(orderId)) { TransCancelWindow(orderId, ar+""); } }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Approve"))
-					{ TransactionApproveWindow(orderId, ar+""); }
+					{ if (checkOrder(orderId)) { TransApproveWindow(orderId, ar+""); } }
 				}
 				tbCmbAction.get(ar).select(null);
 			});
 
-			tblOrderList.addItem(new Object[]{tbLblOrderId.get(ar), tbLblOrderNo.get(ar),tbLblOrderDate.get(ar),
-					tbLblSupplierName.get(ar), tbLblDeliveryDate.get(ar), tbLblAmount.get(ar), tbLblStatus.get(ar),
-					tbChkActive.get(ar), tbCmbAction.get(ar)}, ar);
+			tblOrderList.addItem(new Object[]{tbLblOrderId.get(ar), tbLblOrderNo.get(ar),tbLblOrderDate.get(ar), tbLblSupplierName.get(ar),
+					tbLblDeliveryDate.get(ar), tbLblAmount.get(ar), tbLblStatus.get(ar), tbChkActive.get(ar), tbCmbAction.get(ar)}, ar);
 		}
 		catch(Exception exp)
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
@@ -667,7 +578,7 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 
 	private Panel addReport()
 	{
-		panelReport = new Panel("Purchase Order Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Purchase Order Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -677,47 +588,43 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		GridLayout lay = new GridLayout(2, 5);
 		lay.setSpacing(true);
 
-		txtReportFromDate  = new PopupDateField();
-		txtReportFromDate.setImmediate(true);
-		txtReportFromDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportFromDate.setValue(new Date());
-		txtReportFromDate.setWidth("110px");
-		txtReportFromDate.setDateFormat("dd-MM-yyyy");
-		txtReportFromDate.setRequired(true);
-		txtReportFromDate.setRequiredError("This field is required");
+		txtFromDateReport  = new PopupDateField();
+		txtFromDateReport.setImmediate(true);
+		txtFromDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtFromDateReport.setValue(new Date());
+		txtFromDateReport.setWidth("110px");
+		txtFromDateReport.setDateFormat("dd-MM-yyyy");
+		txtFromDateReport.setRequired(true);
+		txtFromDateReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("From Date: "), 0, 0);
-		lay.addComponent(txtReportFromDate, 1, 0);
+		lay.addComponent(txtFromDateReport, 1, 0);
 
-		txtReportToDate  = new PopupDateField();
-		txtReportToDate.setImmediate(true);
-		txtReportToDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportToDate.setValue(new Date());
-		txtReportToDate.setWidth("110px");
-		txtReportToDate.setDateFormat("dd-MM-yyyy");
-		txtReportToDate.setRequired(true);
-		txtReportToDate.setRequiredError("This field is required");
+		txtToDateReport  = new PopupDateField();
+		txtToDateReport.setImmediate(true);
+		txtToDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtToDateReport.setValue(new Date());
+		txtToDateReport.setWidth("110px");
+		txtToDateReport.setDateFormat("dd-MM-yyyy");
+		txtToDateReport.setRequired(true);
+		txtToDateReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("To Date: "), 0, 1);
-		lay.addComponent(txtReportToDate, 1, 1);
+		lay.addComponent(txtToDateReport, 1, 1);
 
-		cmbSupplierForReport = new ComboBox();
-		cmbSupplierForReport.setWidth("350px");
-		cmbSupplierForReport.setInputPrompt("Select Supplier Name");
-		cmbSupplierForReport.setStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbSupplierForReport.setFilteringMode(FilteringMode.CONTAINS);
-		cmbSupplierForReport.setRequired(true);
-		cmbSupplierForReport.setRequiredError("This field is required");
+		cmbSupplierReport = new MultiComboBox();
+		cmbSupplierReport.setWidth("450px");
+		cmbSupplierReport.setInputPrompt("Select supplier name");
+		cmbSupplierReport.setRequired(true);
+		cmbSupplierReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("Supplier Name: "), 0, 2);
-		lay.addComponent(cmbSupplierForReport, 1, 2);
+		lay.addComponent(cmbSupplierReport, 1, 2);
 
-		cmbOrderNo = new MultiComboBox();
-		cmbOrderNo.setWidth("350px");
-		cmbOrderNo.setInputPrompt("Select Order No");
-		cmbOrderNo.setStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbOrderNo.setFilteringMode(FilteringMode.CONTAINS);
-		cmbOrderNo.setRequired(true);
-		cmbOrderNo.setRequiredError("This field is required");
+		cmbOrderNoReport = new MultiComboBox();
+		cmbOrderNoReport.setWidth("450px");
+		cmbOrderNoReport.setInputPrompt("Select order no");
+		cmbOrderNoReport.setRequired(true);
+		cmbOrderNoReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("Order No: "), 0, 3);
-		lay.addComponent(cmbOrderNo, 1, 3);
+		lay.addComponent(cmbOrderNoReport, 1, 3);
 
 		lay.addComponent(cBtnV, 1, 4);
 		content.addComponent(lay);
@@ -727,9 +634,100 @@ public class PurchaseOrderInfo extends VerticalLayout implements View
 		return panelReport;
 	}
 
+	private void loadTableInfo()
+	{
+		String search = "%"+txtSearch.getValue().toString()+"%", statId = "", statNm = "";;
+		String suppId = cmbSupplierName.getValue() != null? cmbSupplierName.getValue().toString():"%";
+		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
+		String fmDate = cm.dfDb.format(txtFromDate.getValue());
+		String toDate = cm.dfDb.format(txtToDate.getValue());
+		String branId = sessionBean.getBranchId();
+
+		tableClear();
+		int i = 0;
+		try
+		{
+			String sql = "select poi.vOrderId, poi.vOrderNo, poi.dOrderDate, poi.dDeliveryDate, sup.vSupplierCode+' - '+sup.vSupplierName"+
+					" vSupDetails, poi.vRemarks, SUM(pod.mAmount) mAmount, poi.iActive, poi.vStatusId, ast.vStatusName, poi.iAutoId from"+
+					" trans.tbPurchaseOrderInfo poi, trans.tbPurchaseOrderDetails pod, master.tbSupplierMaster sup, master.tbAllStatus ast"+
+					" where poi.vOrderId = pod.vOrderId and poi.vSupplierId = sup.vSupplierId and poi.vStatusId = ast.vStatusId and poi.vOrderNo"+
+					" like '"+search+"' and poi.dOrderDate between '"+fmDate+"' and '"+toDate+"' and poi.vStatusId like '"+status+"' and"+
+					" poi.vBranchId = '"+branId+"' and poi.vSupplierId = '"+suppId+"' group by poi.vOrderId, poi.vOrderNo, poi.dOrderDate,"+
+					" poi.dDeliveryDate, sup.vSupplierCode+' - '+sup.vSupplierName, poi.vRemarks, poi.iActive, poi.vStatusId, ast.vStatusName,"+
+					" poi.iAutoId order by poi.dOrderDate, poi.iAutoId desc";
+			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+			{
+				Object[] element = (Object[]) iter.next();
+
+				if (tbLblOrderId.size() <= i)
+				{ tableRowAdd(i); }
+
+				tbLblOrderId.get(i).setValue(element[0].toString());
+				tbLblOrderNo.get(i).setValue(element[1].toString());
+				tbLblOrderDate.get(i).setValue(cm.dfBd.format(element[2]));
+				tbLblDeliveryDate.get(i).setValue(cm.dfBd.format(element[3]));
+				tbLblSupplierName.get(i).setValue(element[4].toString());
+				tbLblAmount.get(i).setValue(cm.setComma(Double.parseDouble(element[6].toString())));
+				tbChkActive.get(i).setValue((element[7].toString().equals("1")? true:false));
+				tbChkActive.get(i).setEnabled(false);
+
+				statId = element[8].toString();
+				statNm = element[9].toString();
+
+				if (statId.equals("S5"))
+				{ status = "<b style=\"color:orange\">"+statNm+"</b>"; }
+				else if (statId.equals("S6"))
+				{ status = "<b style=\"color:green\">"+statNm+"</b>"; }
+				else if (statId.equals("S7"))
+				{ status = "<b style=\"color:red\">"+statNm+"</b>"; }
+				tbLblStatus.get(i).setValue(status);
+
+				if (statId.equals("S6"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Approve");
+					tbCmbAction.get(i).removeItem("Purchase");
+				}
+				if (statId.equals("S7"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Cancel");
+					tbCmbAction.get(i).removeItem("Approve");
+					tbCmbAction.get(i).removeItem("Purchase");
+				}
+				i++;
+			}
+			tblOrderList.nextPage();
+			tblOrderList.previousPage();
+
+			if (i == 0)
+			{ cm.showNotification("warning", "Sorry!", "No data found."); }
+			totalAmount();
+		}
+		catch (Exception e)
+		{ System.out.println(e); }
+	}
+
+	private void tableClear()
+	{ cm.tableClear(tblOrderList, tbLblOrderId); }
+
+	private double totalAmount()
+	{
+		double amt = 0;
+		for (int i=0; i<tbLblOrderId.size(); i++)
+		{ amt += cm.getAmtValue(tbLblAmount.get(i)); }
+		tblOrderList.setColumnFooter("Amount", cm.setComma(amt));
+		tblOrderList.setColumnAlignment("Amount", Align.RIGHT);		
+		return amt;
+	}
+
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
+
 		loadReportSupplier();
 	}
 }

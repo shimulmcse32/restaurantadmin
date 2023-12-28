@@ -63,7 +63,6 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -71,8 +70,9 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private PhysicalStockGateway pog = new PhysicalStockGateway();
+	private String formId;
+
 	//PhysicalStock report
-	private Panel panelReport;
 	private PopupDateField txtReportFromDate, txtReportToDate;
 	private MultiComboBox cmbItemNameForReport;
 	private CommonButton cBtnV = new CommonButton("", "", "", "", "", "", "", "View", "");
@@ -80,17 +80,13 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	public PhysicalStockInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReport());
 
-		cBtn.btnNew.setEnabled(cm.insert);
-		cBtn.btnSave.setCaption("Process");
-		cBtn.btnSave.setIcon(FontAwesome.COG);
 		addActions();
 	}
 
@@ -122,16 +118,6 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 
 		txtReportToDate.addValueChangeListener(event ->
 		{ loadItemReport(); });
-
-		tblPhysicalStockList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblPhysicalStockId.get(ar).getValue().toString();
-				addEditWindow("Edit", id, ar+"");
-			}
-		});
 	}
 
 	private void addEditWindow(String addEdit, String itemId, String ar)
@@ -178,17 +164,14 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	private void loadItemReport()
 	{
 		cmbItemNameForReport.removeAllItems();
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
+		String fmDate = cm.dfDb.format(txtReportFromDate.getValue());
 		String toDate = cm.dfDb.format(txtReportToDate.getValue());
+		String branId = sessionBean.getBranchId();
 
-		String sqlC = "";
-
-		sqlC = "Select distinct r.vItemId, r.vItemName, dbo.funGetNumeric(r.vItemCode) iCode from (select"+
-				" vItemId from trans.tbLostAddStockInfo where convert(date,dLastStockDate,105) between '"+fromDate+"'"+
-				" and '"+toDate+"' and vBranchId = '"+sessionBean.getBranchId()+"' union select vItemId from"+
-				" trans.tbLostAddStockInfo where convert(date,dLastStockDate,105) between '"+fromDate+"' and '"+toDate+"'"+
-				" and vBranchId = '"+sessionBean.getBranchId()+"') abc inner join master.tbRawItemInfo r on"+
-				" abc.vItemId = r.vItemId order by iCode asc";
+		String sqlC= "Select distinct r.vItemId, r.vItemName, dbo.funGetNumeric(r.vItemCode) iCode from (select vItemId from trans.tbLostAddStockInfo"+
+				" where convert(date,dLastStockDate,105) between '"+fmDate+"' and '"+toDate+"' and vBranchId = '"+branId+"' union select vItemId"+
+				" from trans.tbLostAddStockInfo where convert(date,dLastStockDate,105) between '"+fmDate+"' and '"+toDate+"' and vBranchId ="+
+				" '"+sessionBean.getBranchId()+"') abc inner join master.tbRawItemInfo r on abc.vItemId = r.vItemId order by iCode asc";
 		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -201,20 +184,20 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	{
 		String search = "%"+txtSearch.getValue().toString()+"%";
 		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
+		String fmDate = cm.dfDb.format(txtFromDate.getValue());
 		String toDate = cm.dfDb.format(txtToDate.getValue());
+		String branId = sessionBean.getBranchId();
+
 		tableClear();
 		int i = 0;
 		try
 		{
-			String sql = "select pin.vPhysicalStockId, pin.vPhysicalStockNo, pin.dPhysicalStockDate, pin.vRemarks,"+
-					" (select isnull(sum(mTotalAmount),0) from trans.tbPhysicalStockDetails where vPhysicalStockId"+
-					" = pin.vPhysicalStockId)Amount, (select isnull(count(vItemId),0) from trans.tbPhysicalStockDetails"+
-					" where vPhysicalStockId = pin.vPhysicalStockId)item, pin.iActive, pin.vStatusId, ast.vStatusName"+
-					" from trans.tbPhysicalStockInfo pin, master.tbAllStatus ast where vPhysicalStockNo like '"+search+"'"+
-					" and pin.vStatusId = ast.vStatusId and pin.dPhysicalStockDate between '"+fromDate+"' and '"+toDate+"'"+
-					" and pin.vStatusId like '"+status+"' and pin.vBranchId = '"+sessionBean.getBranchId()+"' order by"+
-					" pin.dPhysicalStockDate desc";
+			String sql = "select pin.vPhysicalStockId, pin.vPhysicalStockNo, pin.dPhysicalStockDate, pin.vRemarks, (select isnull(sum(mTotalAmount), 0)"+
+					" from trans.tbPhysicalStockDetails where vPhysicalStockId = pin.vPhysicalStockId)Amount, (select isnull(count(vItemId),0) from"+
+					" trans.tbPhysicalStockDetails where vPhysicalStockId = pin.vPhysicalStockId)item, pin.iActive, pin.vStatusId, ast.vStatusName"+
+					" from trans.tbPhysicalStockInfo pin, master.tbAllStatus ast where vPhysicalStockNo like '"+search+"' and pin.vStatusId = ast.vStatusId"+
+					" and pin.dPhysicalStockDate between '"+fmDate+"' and '"+toDate+"' and pin.vStatusId like '"+status+"' and pin.vBranchId = '"+branId+"'"+
+					" order by pin.dPhysicalStockDate desc";
 			//System.out.println(sql);
 			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 			{
@@ -344,7 +327,7 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 					" '"+sessionBean.getBranchId()+"') abc inner join"+
 					" master.tbRawItemInfo r on abc.vItemId = r.vItemId where r.vItemId in (select Item from dbo.Split('"+itemIds+"'))"+
 					" order by vItemName, dLastStockDate";
-			System.out.println(sql);
+			//System.out.println(sql);
 			reportSource = "com/jasper/postransaction/rptPhysicalStockProcessedDateBetween.jasper";
 			hm.put("sql", sql);
 			new ReportViewer(hm, reportSource);
@@ -397,7 +380,7 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Physical Stock List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Physical Stock List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -442,6 +425,8 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 		cmbStatus.setInputPrompt("Select status");
 		cmbStatus.setWidth("115px");
 
+		cBtn.btnSave.setCaption("Process");
+		cBtn.btnSave.setIcon(FontAwesome.COG);
 		cBtnS.btnSearch.setStyleName(ValoTheme.BUTTON_TINY);
 		hori.addComponents(txtFromDate, txtToDate, txtSearch, cmbStatus, cBtnS);
 
@@ -454,6 +439,15 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblPhysicalStockList = new TablePaged();
+		tblPhysicalStockList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblPhysicalStockId.get(ar).getValue().toString();
+				addEditWindow("Edit", id, ar+"");
+			}
+		});
 
 		tblPhysicalStockList.addContainerProperty("Physical Stock Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblPhysicalStockList.setColumnCollapsed("Physical Stock Id", true);
@@ -568,7 +562,7 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 
 	private Panel addReport()
 	{
-		panelReport = new Panel("Processed Stock Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Processed Stock Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -613,8 +607,12 @@ public class PhysicalStockInfo extends VerticalLayout implements View
 	}
 
 	public void enter(ViewChangeEvent event)
-	{ 
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
+
 		loadItemReport();
 	}
 }

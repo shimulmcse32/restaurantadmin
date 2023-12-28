@@ -66,7 +66,6 @@ public class IssueInformation extends VerticalLayout implements View
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -74,9 +73,9 @@ public class IssueInformation extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private IssueInfoGateway iig = new IssueInfoGateway();
+	private String formId;
 
 	//Issue report
-	private Panel panelReport;
 	private PopupDateField txtReportFromDate, txtReportToDate;
 	private MultiComboBox cmbItemNameForReport;
 	private CommonButton cBtnV = new CommonButton("", "", "", "", "", "", "", "View", "");
@@ -84,15 +83,13 @@ public class IssueInformation extends VerticalLayout implements View
 	public IssueInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReport());
 
-		cBtn.btnNew.setEnabled(cm.insert);
 		addActions();
 	}
 
@@ -119,16 +116,6 @@ public class IssueInformation extends VerticalLayout implements View
 
 		txtReportToDate.addValueChangeListener(event ->
 		{ loadItemReport(); });
-
-		tblIssueList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblIssueId.get(ar).getValue().toString();
-				addEditWindow("Edit", id, ar+"");
-			}
-		});
 	}
 
 	private void loadStatus()
@@ -453,8 +440,9 @@ public class IssueInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Issue List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Issue List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -510,6 +498,15 @@ public class IssueInformation extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblIssueList = new TablePaged();
+		tblIssueList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblIssueId.get(ar).getValue().toString();
+				addEditWindow("Edit", id, ar+"");
+			}
+		});
 
 		tblIssueList.addContainerProperty("Issue Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblIssueList.setColumnCollapsed("Issue Id", true);
@@ -653,8 +650,9 @@ public class IssueInformation extends VerticalLayout implements View
 
 	private Panel addReport()
 	{
-		panelReport = new Panel("Issue Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Issue Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		HorizontalLayout content = new  HorizontalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -705,7 +703,11 @@ public class IssueInformation extends VerticalLayout implements View
 
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
+
 		loadItemReport();
 	}
 }

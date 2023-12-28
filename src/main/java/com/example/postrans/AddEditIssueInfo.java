@@ -96,19 +96,19 @@ public class AddEditIssueInfo extends Window
 	private void addActions()
 	{
 		cBtn.btnSave.addClickListener(event ->
-			{ masterValidation(); });
+		{ masterValidation(); });
 
 		cBtn.btnExit.addClickListener(event ->
-			{ close(); });
+		{ close(); });
 
 		txtIssueDate.addValueChangeListener(event ->
-			{ loadIssueNo(); });
+		{ loadIssueNo(); });
 
 		cmbRequisition.addValueChangeListener(event ->
-			{ setRequisitionDetails(); });
+		{ setRequisitionDetails(); });
 
 		chkCostMargin.addValueChangeListener(event ->
-			{ calculateCostMargin(); });
+		{ calculateCostMargin(); });
 
 		loadIssueNo();
 		if (flag.equals("Edit"))
@@ -230,10 +230,10 @@ public class AddEditIssueInfo extends Window
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
 		win.focus();
 		win.addCloseListener(event ->
-			{ 
-				for (int i=0; i<tbCmbItemName.size(); i++)
-				{ loadtableComboData(ar); } 
-			});
+		{ 
+			for (int i=0; i<tbCmbItemName.size(); i++)
+			{ loadtableComboData(ar); } 
+		});
 	}
 
 	private void removeRow(int ar)
@@ -805,7 +805,7 @@ public class AddEditIssueInfo extends Window
 			tbCmbItemName.get(ar).setEnabled(cmbRequisition.getValue()==null);
 			loadtableComboData(ar);
 			tbCmbItemName.get(ar).addValueChangeListener(event ->
-				{ itemValidation(ar); });
+			{ itemValidation(ar); });
 
 			tbLblUnitName.add(ar, new Label());
 			tbLblUnitName.get(ar).setWidth("100%");
@@ -857,23 +857,23 @@ public class AddEditIssueInfo extends Window
 			tbAmtIssueQty.get(ar).setInputPrompt("Issued Qty");
 			tbAmtIssueQty.get(ar).setDescription("Issued Qty");
 			tbAmtIssueQty.get(ar).addValueChangeListener(event ->
+			{
+				if (checkQty(ar))
 				{
-					if (checkQty(ar))
+					calculateVatData(ar);
+					if (cmbRequisition.getValue() == null)
 					{
-						calculateVatData(ar);
-						if (cmbRequisition.getValue() == null)
-						{
-							if ((ar+1) == tbCmbItemName.size())
-							{ tableRowAdd(tbCmbItemName.size()); }
-							tbCmbItemName.get(ar+1).focus();
-						}
-						else
-						{
-							if ((ar+1) < tbCmbItemName.size())
-							{ tbAmtIssueQty.get(ar+1).focus(); }
-						}
+						if ((ar+1) == tbCmbItemName.size())
+						{ tableRowAdd(tbCmbItemName.size()); }
+						tbCmbItemName.get(ar+1).focus();
 					}
-				});
+					else
+					{
+						if ((ar+1) < tbCmbItemName.size())
+						{ tbAmtIssueQty.get(ar+1).focus(); }
+					}
+				}
+			});
 
 			tbAmtCostMargin.add(ar, new CommaField());
 			tbAmtCostMargin.get(ar).setWidth("100%");
@@ -922,7 +922,7 @@ public class AddEditIssueInfo extends Window
 			tbBtnRemove.get(ar).addStyleName(ValoTheme.BUTTON_DANGER);
 			tbBtnRemove.get(ar).setDescription("Remove");
 			tbBtnRemove.get(ar).addClickListener(event ->
-				{ removeRow(ar); });
+			{ removeRow(ar); });
 
 			tblIssueDetailsList.addItem(new Object[]{tbBtnAddItem.get(ar), tbCmbItemName.get(ar), tbLblUnitName.get(ar),
 					tbLblCatName.get(ar), tbTxtDescription.get(ar), tbAmtStockQty.get(ar), tbAmtReqQty.get(ar),

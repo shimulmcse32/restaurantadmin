@@ -46,9 +46,9 @@ public class AddEditStockAdjustment extends Window
 
 	private TextField txtAdjustNo, txtRemarks, txtReferenceNo;
 	private PopupDateField txtAdjustDate;
-	private ComboBox cmbStatus;
-	private MultiComboBox cmbItemName;
-	private Button btnItem;
+	private ComboBox cmbAdjType;
+	private MultiComboBox cmbBulkItemName;
+	private Button btnAddBulkItem;
 
 	//Consume, Expired, Damage, Lost
 	private Table tblAdjustDetailsList;
@@ -97,15 +97,16 @@ public class AddEditStockAdjustment extends Window
 		txtAdjustDate.addValueChangeListener(event ->
 		{ loadAdjustNo(); });
 
-		btnItem.addClickListener(event ->
+		btnAddBulkItem.addClickListener(event ->
 		{ addEditItem(); });
 
-		cmbStatus.addValueChangeListener(event ->
-		{ changeStatusData(); });
+		cmbAdjType.addValueChangeListener(event ->
+		{ tableStatusChangeBulk(); });
 
-		cmbItemName.addValueChangeListener(event ->
-		{ setItemToTable(); });
+		cmbBulkItemName.addValueChangeListener(event ->
+		{ setBulkItemToTable(); });
 
+		loadComboData();
 		loadAdjustNo();
 
 		if (flag.equals("Edit"))
@@ -124,46 +125,60 @@ public class AddEditStockAdjustment extends Window
 		}
 	}
 
-	private void loadTableComboData(int ar)
+	private void loadComboData()
 	{
-		String sql = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode"+
-				" from master.tbRawItemInfo where iActive = 1 order by iCode asc";
-		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+		String sqlI = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode from master.tbRawItemInfo"+
+				" where iActive = 1 order by iCode asc";
+		for (Iterator<?> iter = cm.selectSql(sqlI).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
-			if (ar == 0)
-			{
-				cmbItemName.addItem(element[0].toString());
-				cmbItemName.setItemCaption(element[0].toString(),
-						element[2].toString()+" - "+element[1].toString());
-			}
-			tbCmbItemName.get(ar).addItem(element[0].toString());
-			tbCmbItemName.get(ar).setItemCaption(element[0].toString(),
-					element[2].toString()+" - "+element[1].toString());
+
+			cmbBulkItemName.addItem(element[0].toString());
+			cmbBulkItemName.setItemCaption(element[0].toString(), element[2].toString()+" - "+element[1].toString());
 		}
 
-		String sqlStatus = "select vStatusId, vStatusName, vFlag from master.tbStockStatus where iActive = 1"+
-				" order by vStatusName";
-		for (Iterator<?> iter = cm.selectSql(sqlStatus).iterator(); iter.hasNext();)
+		String sqlS = "select vStatusId, vStatusName, vFlag from master.tbStockStatus where iActive = 1 order by vStatusName";
+		for (Iterator<?> iter = cm.selectSql(sqlS).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
-			if (ar == 0)
-			{
-				cmbStatus.addItem(element[0].toString());
-				cmbStatus.setItemCaption(element[0].toString(), element[1].toString());
-				hmStatus.put(element[0].toString(), element[2].toString());
-			}
+
+			cmbAdjType.addItem(element[0].toString());
+			cmbAdjType.setItemCaption(element[0].toString(), element[1].toString());
+			hmStatus.put(element[0].toString(), element[2].toString());
+		}
+	}
+
+	private void loadTableComboData(int ar)
+	{
+		String sqlI = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode from master.tbRawItemInfo where"+
+				" iActive = 1 order by iCode asc";
+		for (Iterator<?> iter = cm.selectSql(sqlI).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+
+			tbCmbItemName.get(ar).addItem(element[0].toString());
+			tbCmbItemName.get(ar).setItemCaption(element[0].toString(), element[2].toString()+" - "+element[1].toString());
+		}
+
+		String sqlS = "select vStatusId, vStatusName, vFlag from master.tbStockStatus where iActive = 1 order by vStatusName";
+		for (Iterator<?> iter = cm.selectSql(sqlS).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+
 			tbCmbAdjType.get(ar).addItem(element[0].toString());
 			tbCmbAdjType.get(ar).setItemCaption(element[0].toString(), element[1].toString());
 		}
 	}
 
-	private void changeStatusData()
+	private void tableStatusChangeBulk()
 	{
 		for (int i=0; i<tbCmbItemName.size(); i++)
 		{
-			tbCmbAdjType.get(i).setEnabled(cmbStatus.getValue() == null);
-			tbCmbAdjType.get(i).setValue(cmbStatus.getValue() == null? "":cmbStatus.getValue().toString());
+			if (tbCmbItemName.get(i).getValue() != null)
+			{
+				//tbCmbAdjType.get(i).setEnabled(cmbAdjType.getValue() == null);
+				tbCmbAdjType.get(i).setValue(cm.getComboValue(cmbAdjType));
+			}
 		}
 	}
 
@@ -223,7 +238,7 @@ public class AddEditStockAdjustment extends Window
 	private void insertData()
 	{		
 		StockAdjustmentModel sam = new StockAdjustmentModel();
-		setValueForSave(sam);
+		setValue(sam);
 		if (sag.insertEditData(sam, flag))
 		{
 			txtClear();
@@ -240,7 +255,7 @@ public class AddEditStockAdjustment extends Window
 		{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
 	}
 
-	private void setValueForSave(StockAdjustmentModel sam)
+	private void setValue(StockAdjustmentModel sam)
 	{
 		sam.setBranchId(sessionBean.getBranchId());
 		sam.setAdjustId(flag.equals("Add")? sag.getAdjustId(sessionBean.getBranchId()):adjustId);
@@ -250,7 +265,7 @@ public class AddEditStockAdjustment extends Window
 		sam.setRemarks(txtRemarks.getValue().toString().trim());
 		sam.setReferenceNo(txtReferenceNo.getValue().toString());
 		sam.setCreatedBy(sessionBean.getUserId());
-		sam.setStatusId("S6");
+		sam.setStatusId(sessionBean.getIsAdmin()? "S6":"S5");
 		sam.setApproveBy(sessionBean.getUserId());
 		sam.setCancelBy("");
 		sam.setCancelReason("");
@@ -260,24 +275,21 @@ public class AddEditStockAdjustment extends Window
 
 	private String getDetails(String adjustId)
 	{
-		String sql = flag.equals("Add") ? "" : "delete trans.tbStockAdjustmentDetails where vAdjustId = '"+adjustId+"' ";
+		String sql = flag.equals("Add")? "" : "delete trans.tbStockAdjustmentDetails where vAdjustId = '"+adjustId+"' ";
 		for (int i = 0; i < tbCmbItemName.size(); i++)
 		{
 			if (i == 0)
 			{
-				sql += "insert into trans.tbStockAdjustmentDetails(vAdjustId, vItemId, vRemarks,"+
-						" vUnitId, vAdjustStatus, mQuantity, mUnitRate, mAmount, iActive) values ";
+				sql += "insert into trans.tbStockAdjustmentDetails(vAdjustId, vItemId, vRemarks, vUnitId, vAdjustStatus,"+
+						" mQuantity, mUnitRate, mAmount, iActive) values ";
 			}
 			if (tbCmbItemName.get(i).getValue() != null && tbCmbAdjType.get(i).getValue() != null &&
 					cm.getAmtValue(tbAmtAdjustQty.get(i)) > 0)
 			{
 				sql += "('"+adjustId+"', '"+tbCmbItemName.get(i).getValue().toString()+"',"+
-						" '"+tbTxtRemarks.get(i).getValue().toString()+"',"+
-						" '"+tbLblUnitId.get(i).getValue().toString()+"',"+
-						" '"+tbCmbAdjType.get(i).getValue().toString()+"',"+
-						" '"+cm.getAmtValue(tbAmtAdjustQty.get(i))+"',"+
-						" '"+cm.getAmtValue(tbAmtPurchaseRate.get(i))+"',"+
-						" '"+cm.getAmtValue(tbAmtTotalAmount.get(i))+"', 1),";
+						" '"+tbTxtRemarks.get(i).getValue().toString()+"', '"+tbLblUnitId.get(i).getValue().toString()+"',"+
+						" '"+tbCmbAdjType.get(i).getValue().toString()+"', '"+cm.getAmtValue(tbAmtAdjustQty.get(i))+"',"+
+						" '"+cm.getAmtValue(tbAmtPurchaseRate.get(i))+"', '"+cm.getAmtValue(tbAmtTotalAmount.get(i))+"', 1),";
 			}
 		}
 		return sql.substring(0, sql.length()-1);
@@ -297,7 +309,7 @@ public class AddEditStockAdjustment extends Window
 				txtRemarks.setValue(sam.getRemarks());
 				txtReferenceNo.setValue(sam.getReferenceNo());
 				setEditDetailsValue(adjustId);
-				cmbItemName.setEnabled(false);
+				cmbBulkItemName.setEnabled(false);
 			}
 			else
 			{ cm.showNotification("failure", "Error!", "Couldn't find information."); }
@@ -310,9 +322,9 @@ public class AddEditStockAdjustment extends Window
 	{
 		int ar = 0;
 		double stock = 0;
-		String sql = "select sd.vAdjustId, sd.vItemId, sd.vUnitId, sd.vAdjustStatus, sd.mQuantity, sd.mUnitRate,"+
-				" sd.mAmount, sd.iActive, sd.vRemarks, ui.vUnitName from trans.tbStockAdjustmentDetails sd,"+
-				" master.tbUnitInfo ui where sd.vUnitId = ui.iUnitId and sd.vAdjustId = '"+adjustId+"' and sd.iActive = 1";
+		String sql = "select sd.vAdjustId, sd.vItemId, sd.vUnitId, sd.vAdjustStatus, sd.mQuantity, sd.mUnitRate, sd.mAmount, sd.iActive,"+
+				" sd.vRemarks, ui.vUnitName from trans.tbStockAdjustmentDetails sd, master.tbUnitInfo ui where sd.vUnitId = ui.iUnitId and"+
+				" sd.vAdjustId = '"+adjustId+"' and sd.iActive = 1 order by sd.iAutoId";
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -337,22 +349,19 @@ public class AddEditStockAdjustment extends Window
 		action = true;
 	}
 
-	private void setItemToTable()
+	private void setBulkItemToTable()
 	{
 		tableClear();
-		String ids = cmbItemName.getValue().toString().replace("]", "").replace("[", "").trim();
+		String ids = cm.getMultiComboValue(cmbBulkItemName);
 		int ar = 0;
 		try
 		{
-			String sql = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode"+
-					" from master.tbRawItemInfo where iActive = 1 and vItemId in (select Item from"+
-					" dbo.Split('"+ids+"')) order by iCode asc";
+			String sql = "select vItemId, vItemName, vItemCode, dbo.funGetNumeric(vItemCode) iCode from master.tbRawItemInfo"+
+					" where iActive = 1 and vItemId in (select Item from dbo.Split('"+ids+"')) order by iCode asc";
 			//System.out.println(sql);
 			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 			{
 				Object[] element = (Object[]) iter.next();
-				if (tbCmbItemName.size() <= ar)
-				{ tableRowAdd(ar); }
 				tbCmbItemName.get(ar).setValue(element[0].toString());
 				ar++;
 			}
@@ -363,7 +372,7 @@ public class AddEditStockAdjustment extends Window
 
 	private void addEditItem()
 	{
-		String itemId = cmbItemName.getValue().toString().replace("[", "").replace("]", "").trim();
+		String itemId = cm.getMultiComboValue(cmbBulkItemName);
 		String addEdit = itemId.isEmpty()? "Add":"Edit";
 
 		AddEditRawItemInfo win = new AddEditRawItemInfo(sessionBean, addEdit, itemId);
@@ -465,28 +474,28 @@ public class AddEditStockAdjustment extends Window
 		CssLayout group = new CssLayout();
 		group.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
-		cmbItemName = new MultiComboBox();
-		cmbItemName.setInputPrompt("Select Item Name");
-		cmbItemName.setWidth("350px");
-		cmbItemName.setDescription("Select item to load in table");
-		btnItem = new Button();
-		btnItem.setIcon(FontAwesome.PLUS);
-		btnItem.setStyleName(ValoTheme.BUTTON_TINY);
-		btnItem.setDescription("Add Item Name");
-		group.addComponents(cmbItemName, btnItem);
-		grid.addComponent(cmbItemName, 1, 1, 2, 1);
+		cmbBulkItemName = new MultiComboBox();
+		cmbBulkItemName.setInputPrompt("Select inventory items(bulk)");
+		cmbBulkItemName.setWidth("350px");
+		cmbBulkItemName.setDescription("Select bulk item to load in table");
+		btnAddBulkItem = new Button();
+		btnAddBulkItem.setIcon(FontAwesome.PLUS);
+		btnAddBulkItem.setStyleName(ValoTheme.BUTTON_TINY);
+		btnAddBulkItem.setDescription("Add Item");
+		group.addComponents(cmbBulkItemName, btnAddBulkItem);
+		grid.addComponent(group, 1, 1, 2, 1);
 
-		cmbStatus = new ComboBox();
-		cmbStatus.setImmediate(true);
-		cmbStatus.setWidth("140px");
-		cmbStatus.setInputPrompt("Select Status");
-		cmbStatus.setDescription("Select Status");
-		cmbStatus.addStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbStatus.setFilteringMode(FilteringMode.CONTAINS);
+		cmbAdjType = new ComboBox();
+		cmbAdjType.setImmediate(true);
+		cmbAdjType.setWidth("140px");
+		cmbAdjType.setInputPrompt("Select Status");
+		cmbAdjType.setDescription("Select Status");
+		cmbAdjType.addStyleName(ValoTheme.COMBOBOX_TINY);
+		cmbAdjType.setFilteringMode(FilteringMode.CONTAINS);
 		Label lblSt = new Label("Status: ");
 		lblSt.setWidth("-1px");
 		grid.addComponent(lblSt, 3, 1);
-		grid.addComponent(cmbStatus, 4, 1);
+		grid.addComponent(cmbAdjType, 4, 1);
 
 		Label lblrem = new Label("Remarks: ");
 		lblrem.setWidth("-1px");
@@ -551,6 +560,7 @@ public class AddEditStockAdjustment extends Window
 
 		tblAdjustDetailsList.addContainerProperty("Rem", Button.class, new Button(), null, null, Align.CENTER);
 		tblAdjustDetailsList.setColumnWidth("Rem", 50);
+
 		tableRowAdd(0);
 		return tblAdjustDetailsList;
 	}
@@ -578,7 +588,6 @@ public class AddEditStockAdjustment extends Window
 			tbCmbItemName.get(ar).setRequired(true);
 			tbCmbItemName.get(ar).setRequiredError("This field is required");
 			tbCmbItemName.get(ar).setInputPrompt("Select item name");
-			tbCmbItemName.get(ar).addValueChangeListener(event -> setItemActions(ar));
 
 			tbLblUnitName.add(ar, new Label());
 			tbLblUnitName.get(ar).setWidth("100%");
@@ -605,8 +614,6 @@ public class AddEditStockAdjustment extends Window
 			tbCmbAdjType.get(ar).setInputPrompt("Adjustment Type");
 			tbCmbAdjType.get(ar).setRequired(true);
 			tbCmbAdjType.get(ar).setRequiredError("This field is required");
-			tbCmbAdjType.get(ar).addValueChangeListener(event ->
-			{ setStatusActions(ar); });
 			loadTableComboData(ar);
 
 			tbAmtStockQty.add(ar, new CommaField());
@@ -626,8 +633,6 @@ public class AddEditStockAdjustment extends Window
 			tbAmtAdjustQty.get(ar).setRequiredError("This field is required");
 			tbAmtAdjustQty.get(ar).setDescription("Adjust Qty");
 			tbAmtAdjustQty.get(ar).setInputPrompt("Adjust Qty");
-			tbAmtAdjustQty.get(ar).addValueChangeListener(event ->
-			{ setRowAmount(ar); });
 
 			tbAmtPurchaseRate.add(ar, new CommaField());
 			tbAmtPurchaseRate.get(ar).setWidth("100%");
@@ -635,8 +640,6 @@ public class AddEditStockAdjustment extends Window
 			tbAmtPurchaseRate.get(ar).addStyleName(ValoTheme.TEXTFIELD_TINY);
 			tbAmtPurchaseRate.get(ar).addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
 			tbAmtPurchaseRate.get(ar).setReadOnly(true);
-			tbAmtPurchaseRate.get(ar).addValueChangeListener(event ->
-			{ setRowAmount(ar); });
 
 			tbAmtTotalAmount.add(ar, new CommaField());
 			tbAmtTotalAmount.get(ar).setWidth("100%");
@@ -660,23 +663,54 @@ public class AddEditStockAdjustment extends Window
 			tbBtnRemove.get(ar).addClickListener(event ->
 			{ removeRow(ar); });
 
-			tblAdjustDetailsList.addItem(new Object[]{tbBtnAddItem.get(ar), tbCmbItemName.get(ar),
-					tbLblUnitName.get(ar), tbLblCatName.get(ar), tbTxtRemarks.get(ar), tbCmbAdjType.get(ar),
-					tbAmtStockQty.get(ar), tbAmtAdjustQty.get(ar), tbAmtPurchaseRate.get(ar),
+			setTableActions(ar);
+
+			tblAdjustDetailsList.addItem(new Object[]{tbBtnAddItem.get(ar), tbCmbItemName.get(ar), tbLblUnitName.get(ar), tbLblCatName.get(ar),
+					tbTxtRemarks.get(ar), tbCmbAdjType.get(ar), tbAmtStockQty.get(ar), tbAmtAdjustQty.get(ar), tbAmtPurchaseRate.get(ar),
 					tbAmtTotalAmount.get(ar), tbLblUnitId.get(ar), tbBtnRemove.get(ar)}, ar);
 		}
 		catch(Exception exp)
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
 	}
 
-	private void setStatusActions(int ar)
+	private void setTableActions(int ar)
 	{
-		String status = "";
-		if (tbCmbAdjType.get(ar).getValue() != null)
+		tbCmbItemName.get(ar).addValueChangeListener(event ->
 		{
-			status = hmStatus.get(tbCmbAdjType.get(ar).getValue().toString()) != null?
-					hmStatus.get(tbCmbAdjType.get(ar).getValue().toString()):"";
-		}
+			if (tbCmbItemName.get(ar).getValue() != null)
+			{
+				addChanges();
+				String selectId = tbCmbItemName.get(ar).getValue().toString();
+				if (!checkDuplicate(selectId, ar))
+				{
+					setItemDetails(ar, selectId);
+					tbCmbAdjType.get(ar).setValue(cm.getComboValue(cmbAdjType));
+					tbAmtAdjustQty.get(ar).focus();
+				}
+				else
+				{
+					tbCmbItemName.get(ar).setValue(null);
+					cm.showNotification("warning", "Warning!", "Duplicate item selected.");
+					tbCmbItemName.get(ar).focus();
+				}
+			}
+		});
+
+		tbCmbAdjType.get(ar).addValueChangeListener(event ->
+		{
+			addStockValidation(ar);
+			tbAmtAdjustQty.get(ar).focus();
+		});
+
+		tbAmtPurchaseRate.get(ar).addValueChangeListener(event -> totalAmountRow(ar));
+
+		tbAmtAdjustQty.get(ar).addValueChangeListener(event -> { addStockValidation(ar); totalAmountRow(ar); });
+		//tbAmtAdjustQty.get(ar).addValueChangeListener(event -> );
+	}
+
+	private void addStockValidation(int ar)
+	{
+		String status = hmStatus.get(cm.getComboValue(tbCmbAdjType.get(ar))) != null? hmStatus.get(cm.getComboValue(tbCmbAdjType.get(ar))):"";
 		if (status.equals("Deduction"))
 		{
 			if (cm.getAmtValue(tbAmtAdjustQty.get(ar)) > cm.getAmtValue(tbAmtStockQty.get(ar)))
@@ -685,26 +719,17 @@ public class AddEditStockAdjustment extends Window
 				cm.showNotification("warning", "Warning!", "Deduction cann't be greater than stock qty.");
 			}
 		}
-		tbAmtAdjustQty.get(ar).focus();
-	}
-
-	private void setRowAmount(int ar)
-	{
-		setStatusActions(ar);
-		totalAmountRow(ar);
-		if ((ar+1) == tbCmbItemName.size())
-		{ tableRowAdd(tbCmbItemName.size()); }
-		tbCmbItemName.get(ar+1).focus();
+		else { tbAmtAdjustQty.get(ar+1).focus(); }
 	}
 
 	private void totalAmountRow(int ar)
 	{
-		double TotalQty = cm.getAmtValue(tbAmtAdjustQty.get(ar));
-		double Rate = cm.getAmtValue(tbAmtPurchaseRate.get(ar));
-		double TotalAmountCal = cm.getRound(TotalQty * Rate);
+		double adjtQty = cm.getAmtValue(tbAmtAdjustQty.get(ar));
+		double avgRate = cm.getAmtValue(tbAmtPurchaseRate.get(ar));
+		double ttlAmnt = cm.getRound(adjtQty * avgRate);
 
 		tbAmtTotalAmount.get(ar).setReadOnly(false);
-		tbAmtTotalAmount.get(ar).setValue(cm.setComma(TotalAmountCal));
+		tbAmtTotalAmount.get(ar).setValue(cm.setComma(ttlAmnt));
 		tbAmtTotalAmount.get(ar).setReadOnly(true);
 		totalAmount("Total");
 		addChanges();
@@ -730,8 +755,8 @@ public class AddEditStockAdjustment extends Window
 
 	private void removeRow(int ar)
 	{
-		if (tbCmbItemName.get(ar).getValue() != null && tbCmbItemName.size() > 0 &&
-				!tbAmtTotalAmount.get(ar).getValue().toString().isEmpty())
+		if (tbCmbItemName.get(ar).getValue() != null && tbCmbItemName.size() > 0
+				&& !tbAmtTotalAmount.get(ar).getValue().toString().isEmpty())
 		{
 			tbCmbItemName.get(ar).setValue(null);
 			tblAdjustDetailsList.removeItem(ar);
@@ -742,39 +767,21 @@ public class AddEditStockAdjustment extends Window
 		totalAmount("Total");
 	}
 
-	private void setItemActions(int ar)
-	{
-		if (tbCmbItemName.get(ar).getValue() != null)
-		{
-			addChanges();
-			String selectId = tbCmbItemName.get(ar).getValue().toString();
-			if (!checkDuplicate(selectId, ar))
-			{
-				setItemDetails(ar, selectId);
-				tbAmtAdjustQty.get(ar).focus();
-			}
-			else
-			{
-				tbCmbItemName.get(ar).setValue(null);
-				cm.showNotification("warning", "Warning!", "Duplicate item selected.");
-				tbCmbItemName.get(ar).focus();
-			}
-		}
-	}
-
-	private void setItemDetails(int ar, String ItemId)
+	private void setItemDetails(int ar, String itemId)
 	{
 		try
 		{
-			String sql = "select U.vUnitName, C.vCategoryName, I.vUnitId, I.vCategoryId, (select [dbo].[funcItemRate]"+
-					" ('"+ItemId+"', '"+sessionBean.getBranchId()+"')) mPurchaseRate, (select [dbo].[funcStockQty]"+
-					" ('"+ItemId+"', '"+sessionBean.getBranchId()+"')) mStockQty from master.tbRawItemInfo I inner"+
-					" join master.tbUnitInfo U on I.vUnitId = U.iUnitId inner join master.tbItemCategory C on"+
-					" I.vCategoryId = C.vCategoryId where I.vItemId = '"+ItemId+"'";
-
+			String branId = sessionBean.getBranchId();
+			String sql = "select uni.vUnitName, cat.vCategoryName, rin.vUnitId, rin.vCategoryId, (select [dbo].[funcItemRate]"+
+					" (rin.vItemId, '"+branId+"')) mPurchaseRate, (select [dbo].[funcStockQty](rin.vItemId, '"+branId+"')) mStockQty"+
+					" from master.tbRawItemInfo rin, master.tbUnitInfo uni, master.tbItemCategory cat where rin.vUnitId = uni.iUnitId"+
+					" and rin.vCategoryId = cat.vCategoryId and rin.vItemId = '"+itemId+"'";
 			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 			{
 				Object[] element = (Object[]) iter.next();
+
+				if ((ar+1) == tbCmbItemName.size())
+				{ tableRowAdd(tbCmbItemName.size()); }
 
 				tbLblUnitName.get(ar).setValue(element[0].toString());
 				tbLblCatName.get(ar).setValue(element[1].toString());

@@ -36,6 +36,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupDateField;
@@ -59,12 +60,12 @@ public class RequisitionInformation extends VerticalLayout implements View
 	private ArrayList<Label> tbLblRequisitionDate = new ArrayList<Label>();
 	private ArrayList<Label> tbLblBranchName = new ArrayList<Label>();
 	private ArrayList<Label> tbLblDeliveryDate = new ArrayList<Label>();
+	private ArrayList<Label> tbLblNoOfItem = new ArrayList<Label>();
 	private ArrayList<Label> tbLblStatus = new ArrayList<Label>();
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbBranchName, cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -72,25 +73,22 @@ public class RequisitionInformation extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private RequisitionInfoGateway rig = new RequisitionInfoGateway();
+	private String formId;
 
 	// Requisition report
-	private Panel panelReport;
-	private PopupDateField txtReportFromDate, txtReportToDate;
-	private ComboBox cmbBranchForReport;
-	private MultiComboBox cmbRequisitionNo;
+	private PopupDateField txtFromDateReport, txtToDateReport;
+	private MultiComboBox cmbBranchReport, cmbReqNoReport;
 	private CommonButton cBtnV = new CommonButton("", "", "", "", "", "", "", "View", "");
 
 	public RequisitionInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReport());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -112,61 +110,43 @@ public class RequisitionInformation extends VerticalLayout implements View
 		cBtnV.btnPreview.addClickListener(event ->
 		{ addValidation(); });
 
-		txtReportFromDate.addValueChangeListener(event ->
+		txtFromDateReport.addValueChangeListener(event ->
 		{ checkReportSupplierLoad(); });
 
-		txtReportToDate.addValueChangeListener(event ->
+		txtToDateReport.addValueChangeListener(event ->
 		{ checkReportSupplierLoad(); });
 
 		txtFromDate.addValueChangeListener(event ->
-		{ checkSearchSupplierLoad(); });
+		{ loadBranchList(); });
 
 		txtToDate.addValueChangeListener(event ->
-		{ checkSearchSupplierLoad(); });
+		{ loadBranchList(); });
 
-		cmbBranchForReport.addValueChangeListener(event ->
+		cmbBranchReport.addValueChangeListener(event ->
 		{ loadRequisitionNo(); });
-		loadBranchList();
-	}
 
-	private void checkSearchSupplierLoad()
-	{
-		if (txtFromDate.getValue() != null)
-		{
-			if (txtToDate.getValue() != null)
-			{ loadBranchList(); }
-			else
-			{
-				txtToDate.focus();
-				cm.showNotification("warning", "Warning!", "Select to date.");
-			}
-		}
-		else
-		{
-			txtFromDate.focus();
-			cm.showNotification("warning", "Warning!", "Select from date.");
-		}
+		loadBranchList();
 	}
 
 	private void loadBranchList()
 	{
 		cmbBranchName.removeAllItems();
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
+		String fmDate = cm.dfDb.format(txtFromDate.getValue());
 		String toDate = cm.dfDb.format(txtToDate.getValue());
+		String branId = sessionBean.getBranchId();
 
-		String sqlC = "select distinct a.vReqBranchId, b.vBranchName from trans.tbRequisitionInfo a inner join"+
-				" master.tbBranchMaster b on b.vBranchId = a.vReqBranchId where dRequisitionDate between '"+fromDate+"'"+
-				" and '"+toDate+"' and a.vBranchId = '"+sessionBean.getBranchId()+"' Order by b.vBranchName";
-		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
+		String sqlB = "select distinct rqi.vReqBranchId, bnm.vBranchName from trans.tbRequisitionInfo rqi, master.tbBranchMaster"+
+				" bnm where rqi.vReqBranchId = bnm.vBranchId and rqi.dRequisitionDate between '"+fmDate+"' and '"+toDate+"' and"+
+				" rqi.vBranchId = '"+branId+"' order by bnm.vBranchName";
+		for (Iterator<?> iter = cm.selectSql(sqlB).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 			cmbBranchName.addItem(element[0].toString());
 			cmbBranchName.setItemCaption(element[0].toString(), element[1].toString());
 		}
 
-		String sqlStatus = "select vStatusId, vStatusName from master.tbAllStatus where iActive = 1 and"+
-				" vFlag = 'st' Order by vStatusName";
-		for (Iterator<?> iter = cm.selectSql(sqlStatus).iterator(); iter.hasNext();)
+		String sqlS = "select vStatusId, vStatusName from master.tbAllStatus where iActive = 1 and vFlag = 'st' Order by vStatusName";
+		for (Iterator<?> iter = cm.selectSql(sqlS).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 			cmbStatus.addItem(element[0].toString());
@@ -174,9 +154,9 @@ public class RequisitionInformation extends VerticalLayout implements View
 		}
 	}
 
-	private void addEditWindow(String addEdit, String itemId, String ar)
+	private void addEditWindow(String addEdit, String transId, String ar)
 	{
-		AddEditRequisition win = new AddEditRequisition(sessionBean, addEdit, itemId);
+		AddEditRequisition win = new AddEditRequisition(sessionBean, addEdit, transId);
 		getUI().addWindow(win);
 		win.center();
 		win.addCloseShortcut(KeyCode.ESCAPE, null);
@@ -192,66 +172,46 @@ public class RequisitionInformation extends VerticalLayout implements View
 		});
 	}
 
-	private void loadTableInfo()
+	private void TransCancelWindow(String transId, String ar)
 	{
-		String branch = cmbBranchName.getValue() == null? "%":cmbBranchName.getValue().toString();
-		String search = "%"+txtSearch.getValue().toString()+"%";
-		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
-		String fromDate = cm.dfDb.format(txtFromDate.getValue());
-		String toDate = cm.dfDb.format(txtToDate.getValue());
-		tableClear();
-		int i = 0;
-		try
+		TransactionCancel win = new TransactionCancel(sessionBean, transId, "Requisition");
+		getUI().addWindow(win);
+		win.center();
+		win.setModal(true);
+		win.addCloseShortcut(KeyCode.ESCAPE, null);
+		win.focus();
+		win.addCloseListener(event ->
 		{
-			String sql = "select pin.vRequisitionId, pin.vRequisitionNo, pin.dRequisitionDate, pin.dDeliveryDate,"+
-					" (select sm.vBranchName from master.tbBranchMaster sm where sm.vBranchId = pin.vReqBranchId)"+
-					" vBranchName, pin.vRemarks, pin.iActive, pin.vStatusId, ast.vStatusName from trans.tbRequisitionInfo"+
-					" pin, master.tbAllStatus ast where vRequisitionNo like '"+search+"' and vReqBranchId like"+
-					" '"+branch+"' and pin.vStatusId = ast.vStatusId and pin.dRequisitionDate between '"+fromDate+"'"+
-					" and '"+toDate+"' and pin.vStatusId like '"+status+"' and pin.vBranchId = '"+sessionBean.getBranchId()+"'"+
-					" Order by pin.dRequisitionDate, pin.iAutoId desc";
-			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-			{
-				Object[] element = (Object[]) iter.next();
-
-				if (tbLblRequisitionId.size() <= i)
-				{ tableRowAdd(i); }
-				tbLblRequisitionId.get(i).setValue(element[0].toString());
-				tbLblRequisitionNo.get(i).setValue(element[1].toString());
-				tbLblRequisitionDate.get(i).setValue(cm.dfBd.format(element[2]));
-				tbLblDeliveryDate.get(i).setValue(cm.dfBd.format(element[3]));
-				tbLblBranchName.get(i).setValue(element[4].toString());
-				tbLblStatus.get(i).setValue(element[8].toString());
-				tbChkActive.get(i).setValue((element[6].toString().equals("1")? true:false));
-				tbChkActive.get(i).setEnabled(false);
-				if (element[7].toString().equals("S6"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Approve");
-				}
-				if (element[7].toString().equals("S7"))
-				{
-					tbCmbAction.get(i).removeItem("Edit");
-					tbCmbAction.get(i).removeItem("Cancel");
-					tbCmbAction.get(i).removeItem("Approve");
-				}
-				i++;
-			}
-			tblRequisitionList.nextPage();
-			tblRequisitionList.previousPage();
-
-			if (i == 0)
-			{ cm.showNotification("warning", "Sorry!", "No data found."); }
-		}
-		catch (Exception e)
-		{ System.out.println(e); }
+			if (!ar.isEmpty())
+			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
+			loadTableInfo();
+		});
 	}
 
-	private void tableClear()
-	{ cm.tableClear(tblRequisitionList, tbLblRequisitionId); }
-
-	private void EditSelectRequisition(String requisitionId, int ar)
-	{ addEditWindow("Edit", requisitionId, ar+""); }
+	private void TransApproveWindow(String transId, String ar)
+	{
+		MessageBox mb = new MessageBox(getUI(), "Are you sure?",
+				MessageBox.Icon.QUESTION, "Do you want to approve information?",
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
+				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
+		mb.show(new EventListener()
+		{
+			public void buttonClicked(ButtonType buttonType)
+			{
+				if (buttonType == ButtonType.YES)
+				{
+					TransAppCanGateway tacm = new TransAppCanGateway();
+					if (tacm.TransactionApprove(transId, sessionBean.getUserId(), "Requisition"))
+					{
+						cm.showNotification("success", "Successfull!", "All information saved successfully.");
+						loadTableInfo();
+					}
+					else
+					{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
+				}
+			}
+		});
+	}
 
 	private void ActiveInactiveSelectRequisition(String requisitionId, int ar)
 	{
@@ -281,129 +241,10 @@ public class RequisitionInformation extends VerticalLayout implements View
 		});
 	}
 
-	private void TransactionCancelWindow(String transId, String ar)
-	{
-		TransactionCancel win = new TransactionCancel(sessionBean, transId, "Requisition");
-		getUI().addWindow(win);
-		win.center();
-		win.setModal(true);
-		win.addCloseShortcut(KeyCode.ESCAPE, null);
-		win.focus();
-		win.addCloseListener(event ->
-		{
-			if (!ar.isEmpty())
-			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
-			loadTableInfo();
-		});
-	}
-
-	private void TransactionApproveWindow(String transId, String ar)
-	{
-		MessageBox mb = new MessageBox(getUI(), "Are you sure?",
-				MessageBox.Icon.QUESTION, "Do you want to approve information?",
-				new MessageBox.ButtonConfig(MessageBox.ButtonType.YES, "Yes"),
-				new MessageBox.ButtonConfig(MessageBox.ButtonType.NO, "No"));
-		mb.show(new EventListener()
-		{
-			public void buttonClicked(ButtonType buttonType)
-			{
-				if (buttonType == ButtonType.YES)
-				{
-					TransAppCanGateway tacm = new TransAppCanGateway();
-					if (tacm.TransactionApprove(transId, sessionBean.getUserId(), "Requisition"))
-					{
-						cm.showNotification("success", "Successfull!", "All information saved successfully.");
-						loadTableInfo();
-					}
-					else
-					{ cm.showNotification("failure", "Error!", "Couldn't save information."); }
-				}
-			}
-		});
-	}
-
-	private void checkReportSupplierLoad()
-	{
-		if (txtReportFromDate.getValue() != null)
-		{
-			if (txtReportToDate.getValue() != null)
-			{ loadReportSupplier(); }
-			else
-			{
-				txtReportToDate.focus();
-				cm.showNotification("warning", "Warning!", "Select to date.");
-			}
-		}
-		else
-		{
-			txtReportFromDate.focus();
-			cm.showNotification("warning", "Warning!", "Select from date.");
-		}
-	}
-
-	private void loadReportSupplier()
-	{
-		cmbBranchForReport.removeAllItems(); 
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());
-
-		String sqlC = "select distinct a.vReqBranchId, b.vBranchName from trans.tbRequisitionInfo a inner join"+
-				" master.tbBranchMaster b on b.vBranchId = a.vReqBranchId where dRequisitionDate between '"+fromDate+"'"+
-				" and '"+toDate+"' and a.vBranchId = '"+sessionBean.getBranchId()+"' Order by b.vBranchName";
-
-		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
-		{
-			Object[] element = (Object[]) iter.next();
-			cmbBranchForReport.addItem(element[0].toString());
-			cmbBranchForReport.setItemCaption(element[0].toString(), element[1].toString());
-		}
-	}
-
-	private void loadRequisitionNo()
-	{
-		cmbRequisitionNo.removeAllItems();
-
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());
-		String branchIds = cmbBranchForReport.getValue() == null? "0":cmbBranchForReport.getValue().toString();
-
-		String sqlC = "select vRequisitionId, vRequisitionNo from trans.tbRequisitionInfo where vReqBranchId like"+
-				" '"+branchIds+"' and dRequisitionDate between '"+fromDate+"' and '"+toDate+"' and a.vBranchId"+
-				" = '"+sessionBean.getBranchId()+"' Order by vRequisitionNo";
-		for (Iterator<?> iter = cm.selectSql(sqlC).iterator(); iter.hasNext();)
-		{
-			Object[] element = (Object[]) iter.next();
-			cmbRequisitionNo.addItem(element[0].toString());
-			cmbRequisitionNo.setItemCaption(element[0].toString(), element[1].toString());
-		}
-	}
-
-	private void addValidation()
-	{
-		if (txtReportFromDate.getValue() != null)
-		{
-			if (txtReportToDate.getValue() != null)
-			{ viewReport(""); }
-			else
-			{
-				txtReportToDate.focus();
-				cm.showNotification("warning", "Warning!", "Select to date.");
-			}
-		}
-		else
-		{
-			txtReportFromDate.focus();
-			cm.showNotification("warning", "Warning!", "Select from date.");
-		}
-	}
-
 	public void viewReport(String reqIds)
 	{
 		String reportSource = "", sql = "";
-		reqIds = reqIds.isEmpty()?cmbRequisitionNo.getValue().toString().replace("]", "").replace("[", "").trim():reqIds;
-		/*String branchIds = cmbBranchForReport.getValue() == null? "%":cmbBranchForReport.getValue().toString();
-		String fromDate = cm.dfDb.format(txtReportFromDate.getValue());
-		String toDate = cm.dfDb.format(txtReportToDate.getValue());*/
+		reqIds = reqIds.isEmpty()? cm.getMultiComboValue(cmbReqNoReport):reqIds;
 		try
 		{
 			HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -415,18 +256,18 @@ public class RequisitionInformation extends VerticalLayout implements View
 			hm.put("devloperInfo", sessionBean.getDeveloper());
 			hm.put("logo", sessionBean.getCompanyLogo());
 			hm.put("userIp", sessionBean.getUserIp());
-			sql = "select rei.vRequisitionNo, rei.dRequisitionDate, rei.dDeliveryDate, rei.vRemarks, rei.vReferenceNo,"+
-					" red.vDescription, red.mQuantity, ast.vStatusName, br.vBranchName vToBranch, br.vAddress vToAddress,"+
-					" bm.vBranchName vFromBranch, bm.vAddress vFromAddress, ri.vItemCode, ri.vItemName, C.vCategoryName,"+
-					" uni.vUnitName, br.vMobileNo, ui.vFullName, ISNULL((select ui.vFullName from master.tbUserInfo ui"+
-					" where ui.vUserId = rei.vApprovedBy), '') vApprovedBy, ISNULL((select ui.vFullName from master.tbUserInfo"+
-					" ui where ui.vUserId = rei.vCancelledBy), '') vCancelledBy from trans.tbRequisitionInfo rei,"+
-					" trans.tbRequisitionDetails red, master.tbBranchMaster br, master.tbRawItemInfo ri, master.tbItemCategory C,"+
-					" master.tbAllStatus ast, master.tbUserInfo ui, master.tbBranchMaster bm, master.tbUnitInfo uni where"+
-					" rei.vRequisitionId = red.vRequisitionId and rei.vReqBranchId = br.vBranchId and red.vItemId = ri.vItemId"+
-					" and ri.vCategoryId = C.vCategoryId and rei.vStatusId = ast.vStatusId and rei.vModifiedBy = ui.vUserId"+
-					" and bm.vBranchId = rei.vBranchId and red.vUnitId = convert(varchar(10), uni.iUnitId) and rei.vRequisitionId in"+
-					"(select Item from dbo.Split('"+reqIds+"'))order by rei.vRequisitionNo, rei.dRequisitionDate, red.iAutoId";
+
+			sql = "select rei.vRequisitionNo, rei.dRequisitionDate, rei.dDeliveryDate, rei.vRemarks, rei.vReferenceNo, red.vDescription,"+
+					" red.mQuantity, ast.vStatusName, tbm.vBranchName vToBranch, tbm.vAddress vToAddress, fbm.vBranchName vFromBranch,"+
+					" fbm.vAddress vFromAddress, rin.vItemCode, rin.vItemName, cat.vCategoryName, uni.vUnitName, tbm.vMobileNo, pre.vFullName,"+
+					" isnull(app.vFullName, '') vApprovedBy, isnull(can.vFullName, '') vCancelledBy from trans.tbRequisitionInfo rei inner"+
+					" join trans.tbRequisitionDetails red on rei.vRequisitionId = red.vRequisitionId inner join master.tbRawItemInfo rin"+
+					" on red.vItemId = rin.vItemId inner join master.tbUnitInfo uni on rin.vUnitId = uni.iUnitId inner join master.tbItemCategory"+
+					" cat on rin.vCategoryId = cat.vCategoryId inner join master.tbAllStatus ast on rei.vStatusId = ast.vStatusId inner join"+
+					" master.tbBranchMaster fbm on rei.vBranchId = fbm.vBranchId inner join master.tbBranchMaster tbm on rei.vReqBranchId = "+
+					" tbm.vBranchId inner join master.tbUserInfo pre on rei.vModifiedBy = pre.vUserId left join master.tbUserInfo app on"+
+					" rei.vApprovedBy = app.vUserId left join master.tbUserInfo can on rei.vCancelledBy = can.vUserId where rei.vRequisitionId"+
+					" in (select Item from dbo.Split('"+reqIds+"')) order by rei.vRequisitionNo, rei.dRequisitionDate, red.iAutoId";
 			//System.out.println(sql);
 			reportSource = "com/jasper/postransaction/rptRequisition.jasper";
 			hm.put("sql", sql);
@@ -438,7 +279,7 @@ public class RequisitionInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Requisition List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Requisition List :: "+sessionBean.getCompanyName()+
 				"("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -470,16 +311,16 @@ public class RequisitionInformation extends VerticalLayout implements View
 		txtToDate.setRequiredError("This field is required");
 
 		cmbBranchName = new ComboBox();
-		cmbBranchName.setInputPrompt("Select Branch Name");
+		cmbBranchName.setInputPrompt("Select branch name");
 		cmbBranchName.setWidth("100%");
-		cmbBranchName.setDescription("Select one Branch");
+		cmbBranchName.setDescription("Select requested branch name");
 		cmbBranchName.addStyleName(ValoTheme.COMBOBOX_TINY);
 		cmbBranchName.setFilteringMode(FilteringMode.CONTAINS);
 
 		txtSearch = new TextField();
 		txtSearch.setIcon(FontAwesome.SEARCH);
-		txtSearch.setInputPrompt("Search Requisition");
-		txtSearch.setDescription("Search by Requisition number");
+		txtSearch.setInputPrompt("Search requisition");
+		txtSearch.setDescription("Search by requisition number");
 		txtSearch.setWidth("120px");
 		txtSearch.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
 		txtSearch.addStyleName(ValoTheme.TEXTFIELD_TINY);
@@ -524,6 +365,8 @@ public class RequisitionInformation extends VerticalLayout implements View
 
 		tblRequisitionList.addContainerProperty("Delivery Date", Label.class, new Label(), null, null, Align.CENTER);
 
+		tblRequisitionList.addContainerProperty("No Of Item", Label.class, new Label(), null, null, Align.CENTER);
+
 		tblRequisitionList.addContainerProperty("Status", Label.class, new Label(), null, null, Align.CENTER);
 
 		tblRequisitionList.addContainerProperty("Active", CheckBox.class, new CheckBox(), null, null, Align.CENTER);
@@ -561,7 +404,12 @@ public class RequisitionInformation extends VerticalLayout implements View
 			tbLblDeliveryDate.get(ar).setImmediate(true);
 			tbLblDeliveryDate.get(ar).addStyleName(ValoTheme.LABEL_TINY);
 
-			tbLblStatus.add(ar, new Label());
+			tbLblNoOfItem.add(ar, new Label());
+			tbLblNoOfItem.get(ar).setWidth("100%");
+			tbLblNoOfItem.get(ar).setImmediate(true);
+			tbLblNoOfItem.get(ar).addStyleName(ValoTheme.LABEL_TINY);
+
+			tbLblStatus.add(ar, new Label("", ContentMode.HTML));
 			tbLblStatus.get(ar).setWidth("100%");
 			tbLblStatus.get(ar).setImmediate(true);
 			tbLblStatus.get(ar).addStyleName(ValoTheme.LABEL_TINY);
@@ -605,7 +453,7 @@ public class RequisitionInformation extends VerticalLayout implements View
 				if (!requisitionId.isEmpty() && tbCmbAction.get(ar).getValue() != null)
 				{
 					if (tbCmbAction.get(ar).getValue().toString().equals("Edit"))
-					{ EditSelectRequisition(requisitionId, ar); }
+					{ addEditWindow("Edit", requisitionId, ar+""); }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Active/Inactive"))
 					{ ActiveInactiveSelectRequisition(requisitionId, ar); }
@@ -614,17 +462,17 @@ public class RequisitionInformation extends VerticalLayout implements View
 					{ viewReport(requisitionId); }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Cancel"))
-					{ TransactionCancelWindow(requisitionId, ar+""); }
+					{ TransCancelWindow(requisitionId, ar+""); }
 
 					else if (tbCmbAction.get(ar).getValue().toString().equals("Approve"))
-					{ TransactionApproveWindow(requisitionId, ar+""); }
+					{ TransApproveWindow(requisitionId, ar+""); }
 				}
 				tbCmbAction.get(ar).select(null);
 			});
 
-			tblRequisitionList.addItem(new Object[]{tbLblRequisitionId.get(ar), tbLblRequisitionNo.get(ar),
-					tbLblRequisitionDate.get(ar), tbLblBranchName.get(ar), tbLblDeliveryDate.get(ar),
-					tbLblStatus.get(ar), tbChkActive.get(ar), tbCmbAction.get(ar)}, ar);
+			tblRequisitionList.addItem(new Object[]{tbLblRequisitionId.get(ar), tbLblRequisitionNo.get(ar), tbLblRequisitionDate.get(ar),
+					tbLblBranchName.get(ar), tbLblDeliveryDate.get(ar), tbLblNoOfItem.get(ar), tbLblStatus.get(ar), tbChkActive.get(ar),
+					tbCmbAction.get(ar)}, ar);
 		}
 		catch(Exception exp)
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
@@ -632,50 +480,52 @@ public class RequisitionInformation extends VerticalLayout implements View
 
 	private Panel addReport()
 	{
-		panelReport = new Panel("Requisition Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Requisition Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
 		content.setSizeFull();
 
-		GridLayout lay = new GridLayout(3, 4);
+		GridLayout lay = new GridLayout(4, 4);
 		lay.setSpacing(true);
 
-		txtReportFromDate  = new PopupDateField();
-		txtReportFromDate.setImmediate(true);
-		txtReportFromDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportFromDate.setValue(new Date());
-		txtReportFromDate.setWidth("110px");
-		txtReportFromDate.setDescription("From Date");
-		txtReportFromDate.setDateFormat("dd-MM-yyyy");
-		lay.addComponent(new Label("Dates: "), 0, 0);
-		lay.addComponent(txtReportFromDate, 1, 0);
+		txtFromDateReport  = new PopupDateField();
+		txtFromDateReport.setImmediate(true);
+		txtFromDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtFromDateReport.setValue(new Date());
+		txtFromDateReport.setWidth("110px");
+		txtFromDateReport.setDescription("From date");
+		txtFromDateReport.setDateFormat("dd-MM-yyyy");
+		lay.addComponent(new Label("Date(s): "), 0, 0);
+		lay.addComponent(txtFromDateReport, 1, 0);
 
-		txtReportToDate  = new PopupDateField();
-		txtReportToDate.setImmediate(true);
-		txtReportToDate.addStyleName(ValoTheme.DATEFIELD_TINY);
-		txtReportToDate.setValue(new Date());
-		txtReportToDate.setWidth("110px");
-		txtReportToDate.setDescription("To Date");
-		txtReportToDate.setDateFormat("dd-MM-yyyy");
-		lay.addComponent(txtReportToDate, 2, 0);
+		txtToDateReport  = new PopupDateField();
+		txtToDateReport.setImmediate(true);
+		txtToDateReport.addStyleName(ValoTheme.DATEFIELD_TINY);
+		txtToDateReport.setValue(new Date());
+		txtToDateReport.setWidth("110px");
+		txtToDateReport.setDescription("To date");
+		txtToDateReport.setDateFormat("dd-MM-yyyy");
+		lay.addComponent(txtToDateReport, 2, 0);
 
-		cmbBranchForReport = new ComboBox();
-		cmbBranchForReport.setWidth("350px");
-		cmbBranchForReport.setInputPrompt("Select Branch Name");
-		cmbBranchForReport.setStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbBranchForReport.setFilteringMode(FilteringMode.CONTAINS);
+		cmbBranchReport = new MultiComboBox();
+		cmbBranchReport.setWidth("450px");
+		cmbBranchReport.setInputPrompt("Select branch name");
+		cmbBranchReport.setDescription("Select branch name");
+		cmbBranchReport.setRequired(true);
+		cmbBranchReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("Branch Name: "), 0, 1);
-		lay.addComponent(cmbBranchForReport, 1, 1, 2, 1);
+		lay.addComponent(cmbBranchReport, 1, 1, 3, 1);
 
-		cmbRequisitionNo = new MultiComboBox();
-		cmbRequisitionNo.setWidth("350px");
-		cmbRequisitionNo.setInputPrompt("Select Requisition No");
-		cmbRequisitionNo.setStyleName(ValoTheme.COMBOBOX_TINY);
-		cmbRequisitionNo.setFilteringMode(FilteringMode.CONTAINS);
+		cmbReqNoReport = new MultiComboBox();
+		cmbReqNoReport.setWidth("450px");
+		cmbReqNoReport.setInputPrompt("Select requisition no");
+		cmbReqNoReport.setDescription("Select requisition no");
+		cmbReqNoReport.setRequired(true);
+		cmbReqNoReport.setRequiredError("This field is required");
 		lay.addComponent(new Label("Requisition No: "), 0, 2);
-		lay.addComponent(cmbRequisitionNo, 1, 2, 2, 2);
+		lay.addComponent(cmbReqNoReport, 1, 2, 3, 2);
 
 		lay.addComponent(cBtnV, 1, 3);
 		content.addComponent(lay);
@@ -686,9 +536,184 @@ public class RequisitionInformation extends VerticalLayout implements View
 		return panelReport;
 	}
 
+	private void checkReportSupplierLoad()
+	{
+		if (txtFromDateReport.getValue() != null)
+		{
+			if (txtToDateReport.getValue() != null)
+			{ loadReportSupplier(); }
+			else
+			{
+				txtToDateReport.focus();
+				cm.showNotification("warning", "Warning!", "Select to date.");
+			}
+		}
+		else
+		{
+			txtFromDateReport.focus();
+			cm.showNotification("warning", "Warning!", "Select from date.");
+		}
+	}
+
+	private void loadReportSupplier()
+	{
+		cmbBranchReport.removeAllItems(); 
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue());
+		String branId = sessionBean.getBranchId();
+
+		String sql = "select distinct rei.vReqBranchId, brm.vBranchName from trans.tbRequisitionInfo rei inner join master.tbBranchMaster"+
+				" brm on brm.vBranchId = rei.vReqBranchId where rei.dRequisitionDate between '"+fmDate+"' and '"+toDate+"' and rei.vBranchId"+
+				" = '"+branId+"' order by brm.vBranchName";
+		//System.out.println(sql);
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+			cmbBranchReport.addItem(element[0].toString());
+			cmbBranchReport.setItemCaption(element[0].toString(), element[1].toString());
+		}
+	}
+
+	private void loadRequisitionNo()
+	{
+		cmbReqNoReport.removeAllItems();
+		String fmDate = cm.dfDb.format(txtFromDateReport.getValue());
+		String toDate = cm.dfDb.format(txtToDateReport.getValue());
+		String branId = cm.getMultiComboValue(cmbBranchReport);
+		String branIs = sessionBean.getBranchId();
+
+		String sql = "select vRequisitionId, vRequisitionNo, CONVERT(varchar(20), dRequisitionDate, 105) vReqDate, ast.vStatusName from"+
+				" trans.tbRequisitionInfo rei, master.tbAllStatus ast where rei.vStatusId = ast.vStatusId and vReqBranchId in (select Item"+
+				" from dbo.Split('"+branId+"')) and dRequisitionDate between '"+fmDate+"' and '"+toDate+"' and vBranchId = '"+branIs+"'"+
+				" order by vRequisitionNo";
+		//System.out.println(sql);
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+
+			cmbReqNoReport.addItem(element[0].toString());
+			cmbReqNoReport.setItemCaption(element[0].toString(),
+					element[1].toString()+" ("+element[2].toString()+")"+" ("+element[3].toString()+")");
+		}
+	}
+
+	private void addValidation()
+	{
+		if (txtFromDateReport.getValue() != null)
+		{
+			if (txtToDateReport.getValue() != null)
+			{
+				if (!cm.getMultiComboValue(cmbBranchReport).isEmpty())
+				{
+					if (!cm.getMultiComboValue(cmbReqNoReport).isEmpty())
+					{  viewReport(""); }
+					else
+					{
+						cmbReqNoReport.focus();
+						cm.showNotification("warning", "Warning!", "Select requisition number.");
+					}
+				}
+				else
+				{
+					cmbBranchReport.focus();
+					cm.showNotification("warning", "Warning!", "Select branch name.");
+				}
+			}
+			else
+			{
+				txtToDateReport.focus();
+				cm.showNotification("warning", "Warning!", "Select to date.");
+			}
+		}
+		else
+		{
+			txtFromDateReport.focus();
+			cm.showNotification("warning", "Warning!", "Select from date.");
+		}
+	}
+
+	private void loadTableInfo()
+	{
+		String search = "%"+txtSearch.getValue().toString().trim()+"%", statId = "", statNm = "";
+		String branch = cmbBranchName.getValue() == null? "%":cmbBranchName.getValue().toString();
+		String status = cmbStatus.getValue() != null? cmbStatus.getValue().toString():"%";
+		String fmDate = cm.dfDb.format(txtFromDate.getValue());
+		String toDate = cm.dfDb.format(txtToDate.getValue());
+		String branId = sessionBean.getBranchId();
+
+		tableClear();
+		int i = 0;
+		try
+		{
+			String sql = "select ren.vRequisitionId, ren.vRequisitionNo, ren.dRequisitionDate, brm.vBranchName, ren.dDeliveryDate, ren.vRemarks,"+
+					" ren.iActive, ren.vStatusId, ast.vStatusName, COUNT(red.vItemId) iNumber from trans.tbRequisitionInfo ren,"+
+					" trans.tbRequisitionDetails red, master.tbAllStatus ast, master.tbBranchMaster brm where ren.vRequisitionId = red.vRequisitionId"+
+					" and ren.vStatusId = ast.vStatusId and brm.vBranchId = ren.vReqBranchId and vRequisitionNo like '"+search+"' and vReqBranchId"+
+					" like '"+branch+"' and ren.dRequisitionDate between '"+fmDate+"' and '"+toDate+"' and ren.vStatusId like '"+status+"' and"+
+					" ren.vBranchId = '"+branId+"' group by ren.vRequisitionId, ren.vRequisitionNo, ren.dRequisitionDate, brm.vBranchName,"+
+					" ren.dDeliveryDate, ren.vRemarks, ren.iActive, ren.vStatusId, ast.vStatusName order by ren.dRequisitionDate desc";
+			//System.out.println(sql);
+			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+			{
+				Object[] element = (Object[]) iter.next();
+
+				if (tbLblRequisitionId.size() <= i)
+				{ tableRowAdd(i); }
+
+				tbLblRequisitionId.get(i).setValue(element[0].toString());
+				tbLblRequisitionNo.get(i).setValue(element[1].toString());
+				tbLblRequisitionDate.get(i).setValue(cm.dfBd.format(element[2]));
+				tbLblBranchName.get(i).setValue(element[3].toString());
+				tbLblDeliveryDate.get(i).setValue(cm.dfBd.format(element[4]));
+				tbLblNoOfItem.get(i).setValue(cm.deciInt.format(element[9]));
+				tbChkActive.get(i).setValue((element[6].toString().equals("1")? true:false));
+				tbChkActive.get(i).setEnabled(false);
+
+				statId = element[7].toString();
+				statNm = element[8].toString();
+
+				if (statId.equals("S5"))
+				{ status = "<b style=\"color:orange\">"+statNm+"</b>"; }
+				else if (statId.equals("S6"))
+				{ status = "<b style=\"color:green\">"+statNm+"</b>"; }
+				else if (statId.equals("S7"))
+				{ status = "<b style=\"color:red\">"+statNm+"</b>"; }
+				tbLblStatus.get(i).setValue(status);
+
+				if (statId.equals("S6"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Approve");
+				}
+				if (statId.equals("S7"))
+				{
+					tbCmbAction.get(i).removeItem("Edit");
+					tbCmbAction.get(i).removeItem("Cancel");
+					tbCmbAction.get(i).removeItem("Approve");
+				}
+
+				i++;
+			}
+			tblRequisitionList.nextPage();
+			tblRequisitionList.previousPage();
+
+			if (i == 0)
+			{ cm.showNotification("warning", "Sorry!", "No data found."); }
+		}
+		catch (Exception e)
+		{ System.out.println(e); }
+	}
+
+	private void tableClear()
+	{ cm.tableClear(tblRequisitionList, tbLblRequisitionId); }
+
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
+
 		loadReportSupplier();
 	}
 }

@@ -2,19 +2,20 @@ package com.common.share;
 
 import com.common.dashboard.DashboardSales;
 import com.common.dashboard.UserHome;
-import com.example.config.BranchInfo;
+import com.example.config.BranchInformation;
 import com.example.config.CompanyInfo;
 import com.example.config.UpdatePassword;
 import com.example.config.UpdateProfile;
-import com.example.config.UserInfo;
+import com.example.config.UserInformation;
 import com.example.config.UserRoleInfo;
 import com.example.hrmaster.EmployeeInformation;
-import com.example.main.CommonParts;
 import com.example.main.MainUI;
 import com.example.main.ValoMenuLayout;
 import com.example.posreport.IssueAndReturn;
 import com.example.posreport.ItemStockReport;
-import com.example.posreport.PurchaseSalesReport;
+import com.example.posreport.PurchaseReturnReport;
+import com.example.posreport.SalesClosingReport;
+import com.example.posreport.VATReturnReport;
 import com.example.possetup.CategoryInformation;
 import com.example.possetup.CustomerInformation;
 import com.example.possetup.FinishedItemInfo;
@@ -33,8 +34,6 @@ import com.example.postrans.PurchaseReturnInfo;
 import com.example.postrans.ReceiptAgainstPurchase;
 import com.example.postrans.RequisitionInformation;
 import com.example.postrans.StockAdjustmentInfo;
-import com.report.operation.SalesReport;
-import com.example.posreport.VATReport;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.*;
@@ -77,8 +76,7 @@ public class RootMenu extends ValoMenuLayout
 		if (browserCantRenderFontsConsistently())
 		{ this.ui.getPage().getStyles().add(".v-app.v-app.v-app {font-family: Sans-Serif;}"); }
 
-		if (this.ui.getPage().getWebBrowser().isIE()
-				&& this.ui.getPage().getWebBrowser().getBrowserMajorVersion() == 9)
+		if (this.ui.getPage().getWebBrowser().isIE() && this.ui.getPage().getWebBrowser().getBrowserMajorVersion() == 9)
 		{ menu.setWidth("320px"); }
 
 		this.ui.setContent(root);
@@ -98,9 +96,6 @@ public class RootMenu extends ValoMenuLayout
 		//Admin menus
 		addAdminMenu();
 
-		//POS menus
-		addPosMenu();
-
 		//Operation master menus
 		addOperationMaster();
 
@@ -116,7 +111,8 @@ public class RootMenu extends ValoMenuLayout
 		{ navigator.navigateTo("home"); }
 
 		//navigator.setErrorView(new DashboardView(sessionBean));
-		navigator.setErrorView(new CommonParts());
+		//navigator.setErrorView(new CommonParts());
+		navigator.setErrorView(new UserHome(sessionBean));
 
 		navigator.addViewChangeListener(new ViewChangeListener()
 		{
@@ -152,54 +148,51 @@ public class RootMenu extends ValoMenuLayout
 	{
 		navigator.addView("home", new UserHome(sessionBean));
 		navigator.addView("dashboard", new DashboardSales(sessionBean));
-		navigator.addView("companyInfo#1", new CompanyInfo(sessionBean, "companyInfo"));
-		navigator.addView("branchInfo#1", new BranchInfo(sessionBean, "branchInfo"));
+		navigator.addView("comInfo#1", new CompanyInfo(sessionBean, "comInfo"));
+		navigator.addView("brnInfo#1", new BranchInformation(sessionBean, "brnInfo"));
 		navigator.addView("userRole#1", new UserRoleInfo(sessionBean, "userRole"));
-		navigator.addView("userInfo#1", new UserInfo(sessionBean, "userInfo"));
-	}
-
-	private void addPosMenu()
-	{
-		navigator.addView("custInfo#2", new CustomerInformation(sessionBean, "custInfo"));
-		navigator.addView("categoryInfo#2", new CategoryInformation(sessionBean, "categoryInfo"));
-
-		navigator.addView("empInfo#2", new EmployeeInformation(sessionBean, "empInfo"));
-		navigator.addView("finishItem#2", new FinishedItemInfo(sessionBean, "finishItem"));
-		navigator.addView("modiMas#2", new ModifierInformation(sessionBean, "modiMas"));
-		navigator.addView("noteInfo#2", new NoteInformation(sessionBean, "noteInfo"));
-		navigator.addView("payMethod#2", new PaymentMethodInfo(sessionBean, "payMethod"));
+		navigator.addView("userInfo#1", new UserInformation(sessionBean, "userInfo"));
 	}
 
 	private void addOperationMaster()
 	{
+		navigator.addView("empInfo#2", new EmployeeInformation(sessionBean, "empInfo"));
 		navigator.addView("suppInfo#2", new SupplierInformation(sessionBean, "suppInfo"));
+		navigator.addView("custInfo#2", new CustomerInformation(sessionBean, "custInfo"));
 		navigator.addView("rawItem#2", new RawItemInformation(sessionBean, "rawItem"));
+
+		navigator.addView("catInfo#2", new CategoryInformation(sessionBean, "catInfo"));
+		navigator.addView("finiItem#2", new FinishedItemInfo(sessionBean, "finiItem"));
+		navigator.addView("modiMas#2", new ModifierInformation(sessionBean, "modiMas"));
+		navigator.addView("noteInfo#2", new NoteInformation(sessionBean, "noteInfo"));
+		navigator.addView("payMeth#2", new PaymentMethodInfo(sessionBean, "payMeth"));
 	}
 
 	private void addOperationTrans()
 	{
-		navigator.addView("stockAdjust#3", new StockAdjustmentInfo(sessionBean, "stockAdjust"));
+		navigator.addView("stkAdjst#3", new StockAdjustmentInfo(sessionBean, "stkAdjst"));
+		navigator.addView("reqInfo#3", new RequisitionInformation(sessionBean, "reqInfo"));
 
-		navigator.addView("requisitionInfo#3", new RequisitionInformation(sessionBean, "requisitionInfo"));
-		navigator.addView("purOrd#3", new PurchaseOrderInfo(sessionBean, "purOrd"));
+		navigator.addView("purOrdr#3", new PurchaseOrderInfo(sessionBean, "purOrdr"));
 		navigator.addView("purInfo#3", new PurchaseInformation(sessionBean, "purInfo"));
-		navigator.addView("purRet#3", new PurchaseReturnInfo(sessionBean, "purRet"));
-		navigator.addView("invInfo#3", new ReceiptAgainstPurchase(sessionBean, "invInfo"));
+		navigator.addView("purRetu#3", new PurchaseReturnInfo(sessionBean, "purRetu"));
+		
+		navigator.addView("recpInfo#3", new ReceiptAgainstPurchase(sessionBean, "recpInfo"));
 
-		navigator.addView("physicalstock#3", new PhysicalStockInfo(sessionBean, "physicalstock"));
+		navigator.addView("phyStock#3", new PhysicalStockInfo(sessionBean, "phyStock"));
 
-		navigator.addView("issueInfo#3", new IssueInformation(sessionBean, "issueInfo"));
-		navigator.addView("pendingIssue#3", new IssueReceivedInfo(sessionBean, "pendingIssue"));
-		navigator.addView("issueReturn#3", new IssueReturnInfo(sessionBean, "issueReturn"));
+		navigator.addView("issuInfo#3", new IssueInformation(sessionBean, "issuInfo"));
+		navigator.addView("penIssue#3", new IssueReceivedInfo(sessionBean, "penIssue"));
+		navigator.addView("issReturn#3", new IssueReturnInfo(sessionBean, "issReturn"));
 	}
 
 	private void addOperationReport()
 	{
-		navigator.addView("salesReport#4", new SalesReport(sessionBean, "salesReport"));
-		navigator.addView("vatReport#4", new VATReport(sessionBean, "vatReport"));
-		navigator.addView("purchaseReport#4", new PurchaseSalesReport(sessionBean, "purchaseReport"));
-		navigator.addView("issueReport#4", new IssueAndReturn(sessionBean, "issueReport"));
-		navigator.addView("itemReport#4", new ItemStockReport(sessionBean, "itemReport"));
+		navigator.addView("itmRept#4", new ItemStockReport(sessionBean, "itmRept"));
+		navigator.addView("purRept#4", new PurchaseReturnReport(sessionBean, "purRept"));
+		navigator.addView("vatRept#4", new VATReturnReport(sessionBean, "vatRept"));
+		navigator.addView("issRept#4", new IssueAndReturn(sessionBean, "issRept"));
+		navigator.addView("salRept#4", new SalesClosingReport(sessionBean, "salRept"));
 	}
 
 	private CssLayout buildMenu()
@@ -332,9 +325,9 @@ public class RootMenu extends ValoMenuLayout
 			if (menuId.equals("home")) btnAction.setIcon(FontAwesome.HOME);
 			if (menuId.equals("dashboard")) btnAction.setIcon(FontAwesome.DASHBOARD);
 
-			if (menuId.equals("companyInfo#1")) btnAction.setIcon(FontAwesome.CLOUD);
-			if (menuId.equals("branchInfo#1")) btnAction.setIcon(FontAwesome.SITEMAP);
-			if (menuId.equals("terminalInfo#1")) btnAction.setIcon(FontAwesome.TERMINAL);
+			if (menuId.equals("comInfo#1")) btnAction.setIcon(FontAwesome.CLOUD);
+			if (menuId.equals("brnInfo#1")) btnAction.setIcon(FontAwesome.SITEMAP);
+			if (menuId.equals("termInfo#1")) btnAction.setIcon(FontAwesome.TERMINAL);
 			if (menuId.equals("userRole#1")) btnAction.setIcon(FontAwesome.PAINT_BRUSH);
 			if (menuId.equals("userInfo#1")) btnAction.setIcon(FontAwesome.USER);
 			if (menuId.equals("onlineMenu#1")) btnAction.setIcon(FontAwesome.GLOBE);
@@ -345,31 +338,31 @@ public class RootMenu extends ValoMenuLayout
 			//Operation Master
 			if (menuId.equals("suppInfo#2")) btnAction.setIcon(FontAwesome.BUYSELLADS);
 			if (menuId.equals("custInfo#2")) btnAction.setIcon(FontAwesome.SELLSY);
-			if (menuId.equals("categoryInfo#2")) btnAction.setIcon(FontAwesome.BARS);
+			if (menuId.equals("catInfo#2")) btnAction.setIcon(FontAwesome.BARS);
 			if (menuId.equals("rawItem#2")) btnAction.setIcon(FontAwesome.RA);
 			if (menuId.equals("modiMas#2")) btnAction.setIcon(FontAwesome.PLUS_SQUARE_O);
 			if (menuId.equals("noteInfo#2")) btnAction.setIcon(FontAwesome.FILE_TEXT);
-			if (menuId.equals("payMethod#2")) btnAction.setIcon(FontAwesome.EURO);
-			if (menuId.equals("finishItem#2")) btnAction.setIcon(FontAwesome.PIE_CHART);
+			if (menuId.equals("payMeth#2")) btnAction.setIcon(FontAwesome.EURO);
+			if (menuId.equals("finiItem#2")) btnAction.setIcon(FontAwesome.PIE_CHART);
 
 			//Operation Transaction
-			if (menuId.equals("purOrd#3")) btnAction.setIcon(FontAwesome.CART_ARROW_DOWN);
+			if (menuId.equals("purOrdr#3")) btnAction.setIcon(FontAwesome.CART_ARROW_DOWN);
 			if (menuId.equals("purInfo#3")) btnAction.setIcon(FontAwesome.SHOPPING_CART);
-			if (menuId.equals("purRet#3")) btnAction.setIcon(FontAwesome.REMOVE);
-			if (menuId.equals("invInfo#3")) btnAction.setIcon(FontAwesome.CLIPBOARD);
-			if (menuId.equals("stockAdjust#3")) btnAction.setIcon(FontAwesome.ADJUST);
-			if (menuId.equals("physicalstock#3")) btnAction.setIcon(FontAwesome.STAR_O);
-			if (menuId.equals("issueInfo#3")) btnAction.setIcon(FontAwesome.ARCHIVE);
-			if (menuId.equals("pendingIssue#3")) btnAction.setIcon(FontAwesome.RECYCLE);
-			if (menuId.equals("issueReturn#3")) btnAction.setIcon(FontAwesome.RENREN);
-			if (menuId.equals("requisitionInfo#3")) btnAction.setIcon(FontAwesome.REORDER);
+			if (menuId.equals("purRetu#3")) btnAction.setIcon(FontAwesome.REMOVE);
+			if (menuId.equals("recpInfo#3")) btnAction.setIcon(FontAwesome.CLIPBOARD);
+			if (menuId.equals("stkAdjst#3")) btnAction.setIcon(FontAwesome.ADJUST);
+			if (menuId.equals("phyStock#3")) btnAction.setIcon(FontAwesome.STAR_O);
+			if (menuId.equals("issuInfo#3")) btnAction.setIcon(FontAwesome.ARCHIVE);
+			if (menuId.equals("penIssue#3")) btnAction.setIcon(FontAwesome.RECYCLE);
+			if (menuId.equals("issReturn#3")) btnAction.setIcon(FontAwesome.RENREN);
+			if (menuId.equals("reqInfo#3")) btnAction.setIcon(FontAwesome.REORDER);
 
 			//Operation Report
-			if (menuId.equals("vatReport#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
-			if (menuId.equals("purchaseReport#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
-			if (menuId.equals("salesReport#4")) btnAction.setIcon(FontAwesome.CLIPBOARD);
-			if (menuId.equals("issueReport#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
-			if (menuId.equals("itemReport#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
+			if (menuId.equals("vatRept#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
+			if (menuId.equals("purRept#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
+			if (menuId.equals("salRept#4")) btnAction.setIcon(FontAwesome.CLIPBOARD);
+			if (menuId.equals("issRept#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
+			if (menuId.equals("itmRept#4")) btnAction.setIcon(FontAwesome.FILE_PDF_O);
 
 			menuItemsLayout.addComponent(btnAction);
 			//count++;

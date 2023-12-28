@@ -42,8 +42,7 @@ public class ItemStockReport extends VerticalLayout implements View
 	//Stock Report
 	private CommonButton cBtnItem = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogStockValue;
-	private MultiComboBox cmbCategory, cmbRawItem; 
-	private Panel panelItem;
+	private MultiComboBox cmbCategory, cmbRawItem;
 
 	private CommonMethod cm;
 
@@ -54,17 +53,67 @@ public class ItemStockReport extends VerticalLayout implements View
 		setMargin(true);
 		setSpacing(true);
 
-		addComponents(addItem());
+		addComponents(addReportPanel());
 
 		addActionsItem();
-		loadCategory();
+	}
+
+	private void addActionsItem()
+	{
+		cmbCategory.addValueChangeListener(event -> loadRawItem());
+
+		cBtnItem.btnPreview.addClickListener(event -> addValidationItem());
+	}
+
+	private void loadCategory()
+	{
+		cmbCategory.removeAllItems();
+		String sql = "select vCategoryId, vCategoryName from master.tbItemCategory where vCategoryType = 'Raw' order by vCategoryName";
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+			cmbCategory.addItem(element[0].toString());
+			cmbCategory.setItemCaption(element[0].toString(), element[1].toString());
+		}
+	}
+
+	private void loadRawItem()
+	{
+		cmbRawItem.removeAllItems();
+		String catIds = cm.getMultiComboValue(cmbCategory);
+		String sql = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iSerial from master.tbRawItemInfo where vCategoryId"+
+				" in (select Item from dbo.Split('"+catIds+"')) order by iSerial";
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
+		{
+			Object[] element = (Object[]) iter.next();
+			cmbRawItem.addItem(element[0].toString());
+			cmbRawItem.setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
+		}
+	}
+
+	private void addValidationItem()
+	{
+		if (!cm.getMultiComboValue(cmbCategory).isEmpty())
+		{
+			if (!cm.getMultiComboValue(cmbRawItem).isEmpty())
+			{ viewReport(); }
+			else
+			{
+				cmbRawItem.focus();
+				cm.showNotification("warning", "Warning!", "Select item name.");
+			}
+		}
+		else
+		{
+			cmbCategory.focus();
+			cm.showNotification("warning", "Warning!", "Select item category.");
+		}
 	}
 
 	//Stock Report Start
-	private Panel addItem()
+	private Panel addReportPanel()
 	{
-		panelItem = new Panel("Item Stock Report :: "+sessionBean.getCompanyName()+
-				" ("+this.sessionBean.getBranchName()+")");
+		Panel panelItem = new Panel("Item Stock Report :: "+sessionBean.getCompanyName()+" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout hori = new HorizontalLayout();
 		hori.setSpacing(true);
 		hori.setMargin(true);
@@ -107,59 +156,6 @@ public class ItemStockReport extends VerticalLayout implements View
 		return panelItem;
 	}
 
-	private void addActionsItem()
-	{
-		cmbCategory.addValueChangeListener(event -> loadRawItem());
-
-		cBtnItem.btnPreview.addClickListener(event -> addValidationItem());
-	}
-
-	private void loadCategory()
-	{
-		cmbCategory.removeAllItems();
-		String sql = "select vCategoryId, vCategoryName from master.tbItemCategory where"+
-				" vCategoryType = 'Raw' order by vCategoryName";
-		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-		{
-			Object[] element = (Object[]) iter.next();
-			cmbCategory.addItem(element[0].toString());
-			cmbCategory.setItemCaption(element[0].toString(), element[1].toString());
-		}
-	}
-
-	private void loadRawItem()
-	{
-		cmbRawItem.removeAllItems();
-		String catIds = cmbCategory.getValue().toString().replace("]", "").replace("[", "").trim();
-		String sql = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iSerial from master.tbRawItemInfo"+
-				" where vCategoryId in (select Item from dbo.Split('"+catIds+"')) order by iSerial";
-		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
-		{
-			Object[] element = (Object[]) iter.next();
-			cmbRawItem.addItem(element[0].toString());
-			cmbRawItem.setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
-		}
-	}
-
-	private void addValidationItem()
-	{
-		if (!cmbCategory.getValue().toString().replace("]", "").replace("[", "").isEmpty())
-		{
-			if (!cmbRawItem.getValue().toString().replace("]", "").replace("[", "").isEmpty())
-			{ viewReport(); }
-			else
-			{
-				cmbRawItem.focus();
-				cm.showNotification("warning", "Warning!", "Select item name.");
-			}
-		}
-		else
-		{
-			cmbCategory.focus();
-			cm.showNotification("warning", "Warning!", "Select item category.");
-		}
-	}
-
 	private void viewReport()
 	{
 		HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -167,7 +163,7 @@ public class ItemStockReport extends VerticalLayout implements View
 		try
 		{
 			String branch = sessionBean.getBranchId();
-			String itemIds =  cmbRawItem.getValue().toString().replace("]", "").replace("[", "").trim();
+			String itemIds = cm.getMultiComboValue(cmbRawItem);
 
 			hm.put("companyName", sessionBean.getCompanyName());
 			hm.put("branchName", sessionBean.getBranchName());
@@ -182,14 +178,12 @@ public class ItemStockReport extends VerticalLayout implements View
 			{ stock = "where mStockQty > 0"; }
 			else if (ogStockValue.getValue().toString().equals("Without Stock"))
 			{ stock = "where mStockQty <= 0"; }
-			sql = "select vItemCode+' - '+vItemName vItemDetails, vUnitName, vCategoryName, vVatCatName, mCostRate,"+
-					" mStockQty, (mCostRate*mStockQty) mAmount, dDatetime from (select rii.vItemId, rii.vItemCode,"+
-					" rii.vItemName, uni.vUnitName, cat.vCategoryName, vat.vVatCatName, [dbo].[funcItemRate]"+
-					" (rii.vItemId, '"+branch+"') mCostRate, [dbo].[funcStockQty] (rii.vItemId, '"+branch+"') mStockQty,"+
-					" dbo.funGetNumeric(rii.vItemCode) iSerial, getdate() dDatetime from master.tbRawItemInfo rii,"+
-					" master.tbItemCategory cat, master.tbVatCatMaster vat, master.tbUnitInfo uni where rii.vCategoryId"+
-					" = cat.vCategoryId and rii.vVatCatId = vat.vVatCatId and rii.vUnitId = convert(varchar(10),"+
-					" iUnitId) and vItemId in (select Item from dbo.Split('"+itemIds+"'))) as tbTemp "+stock+""+
+			sql = "select vItemCode+' - '+vItemName vItemDetails, vUnitName, vCategoryName, vVatCatName, mCostRate, mStockQty, (mCostRate"+
+					" * mStockQty) mAmount, dDatetime from (select rii.vItemId, rii.vItemCode, rii.vItemName, uni.vUnitName, cat.vCategoryName,"+
+					" vat.vVatCatName, [dbo].[funcItemRate] (rii.vItemId, '"+branch+"') mCostRate, [dbo].[funcStockQty] (rii.vItemId, '"+branch+"')"+
+					" mStockQty, dbo.funGetNumeric(rii.vItemCode) iSerial, getdate() dDatetime from master.tbRawItemInfo rii, master.tbItemCategory"+
+					" cat, master.tbVatCatMaster vat, master.tbUnitInfo uni where rii.vCategoryId = cat.vCategoryId and rii.vVatCatId = vat.vVatCatId"+
+					" and rii.vUnitId = convert(varchar(10), iUnitId) and vItemId in (select Item from dbo.Split('"+itemIds+"'))) as tbTemp "+stock+""+
 					" order by vCategoryName, iSerial, vItemName";
 			//System.out.println(sql);
 			reportSource = "com/jasper/postransaction/rptItemStockValue.jasper";

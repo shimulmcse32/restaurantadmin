@@ -61,31 +61,27 @@ public class SupplierInformation extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogFilter;
 
 	private CommonMethod cm;
 	private SupplierInfoGateway sig = new SupplierInfoGateway();
+	private String formId;
 
 	//Report panel
-	private Panel panelReport;
 	private CommonButton cBtnView = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogSupplierStaus, ogReportFormat;
 
 	public SupplierInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
 		addComponents(cBtn, addPanel(), addReportPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 	}
@@ -131,7 +127,7 @@ public class SupplierInformation extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Supplier List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Supplier List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -343,7 +339,7 @@ public class SupplierInformation extends VerticalLayout implements View
 	//Report Panel Start
 	private Panel addReportPanel()
 	{
-		panelReport = new Panel("Supplier Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Supplier Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -437,5 +433,10 @@ public class SupplierInformation extends VerticalLayout implements View
 	}
 
 	public void enter(ViewChangeEvent event)
-	{ loadTableInfo(); }
+	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+		loadTableInfo();
+	}
 }

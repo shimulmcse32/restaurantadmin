@@ -65,7 +65,6 @@ public class FinishedItemInfo extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 
 	private TextField txtSearch;
 	private OptionGroup ogItemType, ogFilter;
@@ -73,28 +72,27 @@ public class FinishedItemInfo extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private ItemInfoGateway iig = new ItemInfoGateway();
+	private String formId;
 
 	//Information Report
-	private Panel panelInfo;
 	private ComboBox cmbCategoryInfo, cmbVatCatInfo;
 	private CommonButton cBtnInfo = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogMenuStausInfo, ogReportFormatInfo, ogMenuType;
 	private CheckBox chkInventory;
 
 	//Information Recipe
-	private Panel panelRecipe;
 	private MultiComboBox cmbMenuRecipe;
 	private CommonButton cBtnRecipe = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogReportTypeRecipe;
 
 	//Information Recipe(Details)
-	private Panel panelInfoDe;
 	private MultiComboBox cmbCategoryInfoDe, cmbFinishedItemDe;
 	private CommonButton cBtnInfoDe = new CommonButton("", "", "", "", "", "", "", "View", "");
 
 	public FinishedItemInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
@@ -155,7 +153,7 @@ public class FinishedItemInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Menu List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Menu List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -413,7 +411,7 @@ public class FinishedItemInfo extends VerticalLayout implements View
 	//Finished Menu Report
 	private Panel addReportInfo()
 	{
-		panelInfo = new Panel("Menu Report :: "+sessionBean.getCompanyName()+
+		Panel panelInfo = new Panel("Menu Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -621,7 +619,7 @@ public class FinishedItemInfo extends VerticalLayout implements View
 	//Report Recipe
 	private Panel addReportRecipe()
 	{
-		panelRecipe = new Panel("Menu Recipe :: "+sessionBean.getCompanyName()+
+		Panel panelRecipe = new Panel("Menu Recipe :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -756,7 +754,7 @@ public class FinishedItemInfo extends VerticalLayout implements View
 	//Menu Recipe Report
 	private Panel addReportReciped()
 	{
-		panelInfoDe = new Panel("Menu Recipe Details :: "+sessionBean.getCompanyName()+
+		Panel panelInfoDe = new Panel("Menu Recipe Details :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -884,5 +882,10 @@ public class FinishedItemInfo extends VerticalLayout implements View
 	{ loadTableInfo(); loadCategory(); loadMenuName(); loadCategoryDe(); }
 
 	public void enter(ViewChangeEvent event)
-	{ resetData(); }
+	{
+		resetData();
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
+	}
 }

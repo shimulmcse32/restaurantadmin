@@ -53,10 +53,9 @@ public class AddEditRequisition extends Window
 	private ArrayList<TextField> tbTxtDescription = new ArrayList<TextField>();
 	private ArrayList<CommaField> tbAmtStockQty = new ArrayList<CommaField>();
 	private ArrayList<CommaField> tbAmtRequestQty = new ArrayList<CommaField>();
-	private ArrayList<Label> tbLblUnitId  = new ArrayList<Label>();
-	private ArrayList<Label> tbLblCatId  = new ArrayList<Label>();
-	private ArrayList<Button> tbBtnAddItem  = new ArrayList<Button>();
-	private ArrayList<Button> tbBtnRemove  = new ArrayList<Button>();
+	private ArrayList<Label> tbLblUnitId = new ArrayList<Label>();
+	private ArrayList<Button> tbBtnAddItem = new ArrayList<Button>();
+	private ArrayList<Button> tbBtnRemove = new ArrayList<Button>();
 
 	private ArrayList<Component> allComp = new ArrayList<Component>();
 	private HashMap<String, String> hmBranch = new HashMap<String, String>();
@@ -134,7 +133,7 @@ public class AddEditRequisition extends Window
 		else
 		{
 			cmbRequestedBranch.focus();
-			cm.showNotification("warning", "Warning!", "Select Branch Name.");
+			cm.showNotification("warning", "Warning!", "Select branch name.");
 		}
 	}
 
@@ -198,7 +197,7 @@ public class AddEditRequisition extends Window
 		pom.setRequisitionId(flag.equals("Add")? rig.getRequisitionId(sessionBean.getBranchId()):reqId);
 		pom.setRequisitionNo(flag.equals("Add")? rig.getRequisitionNo(cm.dfDb.format(txtRequisitionDate.getValue())).toString():
 			txtRequisitionNo.getValue().toString());
-		pom.setReqBranchId((cmbRequestedBranch.getValue() == null) ? "":cmbRequestedBranch.getValue().toString());
+		pom.setReqBranchId(cm.getComboValue(cmbRequestedBranch));
 		pom.setRequisitionDate(txtRequisitionDate.getValue());
 		pom.setDeliveryDate(txtDeliveryDate.getValue());
 		pom.setRemarks(txtRemarks.getValue().toString().trim());
@@ -214,20 +213,15 @@ public class AddEditRequisition extends Window
 
 	private String getDetails(String reqId)
 	{
-		String sql = flag.equals("Add") ? "" : "delete trans.tbRequisitionDetails where vRequisitionId = '"+reqId+"' ";
+		String sql = flag.equals("Add")? "":"delete trans.tbRequisitionDetails where vRequisitionId = '"+reqId+"' ";
 		for (int i = 0; i < tbCmbItemName.size(); i++)
 		{
 			if (i == 0)
-			{
-				sql += "insert into trans.tbRequisitionDetails(vRequisitionId, vItemId, vDescription,"+
-						" vUnitId, mQuantity, iActive) values ";
-			}
+			{ sql += "insert into trans.tbRequisitionDetails(vRequisitionId, vItemId, vDescription, vUnitId, mQuantity, iActive) values "; }
 			if (tbCmbItemName.get(i).getValue() != null && cm.getAmtValue(tbAmtRequestQty.get(i)) > 0)
 			{
-				sql += "('"+reqId+"', '"+tbCmbItemName.get(i).getValue().toString()+"',"+
-						" '"+tbTxtDescription.get(i).getValue().toString()+"',"+
-						" '"+tbLblUnitId.get(i).getValue().toString()+"',"+
-						" '"+cm.getAmtValue(tbAmtRequestQty.get(i))+"', 1),";
+				sql += "('"+reqId+"', '"+tbCmbItemName.get(i).getValue().toString()+"', '"+tbTxtDescription.get(i).getValue().toString()+"',"+
+						" '"+tbLblUnitId.get(i).getValue().toString()+"', '"+cm.getAmtValue(tbAmtRequestQty.get(i))+"', 1),";
 			}
 		}
 		return sql.substring(0, sql.length()-1);
@@ -248,7 +242,7 @@ public class AddEditRequisition extends Window
 				txtRequisitionNo.setReadOnly(false);
 				txtRequisitionNo.setValue(pom.getRequisitionNo());
 				txtRequisitionNo.setReadOnly(true);
-				setValue(reqId);
+				setValue();
 			}
 			else
 			{ cm.showNotification("failure", "Error!", "Couldn't find information."); }
@@ -257,12 +251,12 @@ public class AddEditRequisition extends Window
 		{ System.out.println(ex); }
 	}
 
-	private void setValue(String reqId)
+	private void setValue()
 	{
 		int ar = 0;
-		String sql = "select red.vItemId, red.vUnitId, ui.vUnitName, red.mQuantity, red.vDescription from"+
-				" trans.tbRequisitionDetails red, master.tbUnitInfo ui where red.vUnitId = ui.iUnitId"+
-				" and vRequisitionId = '"+reqId+"'";
+		String sql = "select red.vItemId, red.vUnitId, uni.vUnitName, red.mQuantity, red.vDescription from trans.tbRequisitionDetails"+
+				" red, master.tbUnitInfo uni where red.vUnitId = uni.iUnitId and red.vRequisitionId = '"+reqId+"'";
+		//System.out.println(sql);
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -297,8 +291,8 @@ public class AddEditRequisition extends Window
 		cmbRequestedBranch = new ComboBox();
 		cmbRequestedBranch.setImmediate(true);
 		cmbRequestedBranch.setWidth("300px");
-		cmbRequestedBranch.setInputPrompt("Select Branch Name");
-		cmbRequestedBranch.setDescription("Select branch name");
+		cmbRequestedBranch.setInputPrompt("Select branch name");
+		cmbRequestedBranch.setDescription("Select branch name requested to");
 		cmbRequestedBranch.addStyleName(ValoTheme.COMBOBOX_TINY);
 		cmbRequestedBranch.setFilteringMode(FilteringMode.CONTAINS);
 		cmbRequestedBranch.setRequired(true);
@@ -328,6 +322,7 @@ public class AddEditRequisition extends Window
 		txtDeliveryDate.setValue(new Date());
 		txtDeliveryDate.setWidth("110px");
 		txtDeliveryDate.setDateFormat("dd-MM-yyyy");
+		txtDeliveryDate.setDescription("Expected delivery date");
 		grid.addComponent(new Label("Delivery Date: "), 2, 1);
 		grid.addComponent(txtDeliveryDate, 3, 1);
 
@@ -336,6 +331,7 @@ public class AddEditRequisition extends Window
 		txtReferenceNo.addStyleName(ValoTheme.TEXTFIELD_TINY);
 		txtReferenceNo.setWidth("250px");
 		txtReferenceNo.setInputPrompt("Reference");
+		txtReferenceNo.setDescription("Reference");
 		Label lblRef = new Label("Reference: ");
 		lblRef.setWidth("-1px");
 		grid.addComponent(lblRef, 4, 0);
@@ -346,6 +342,7 @@ public class AddEditRequisition extends Window
 		txtRemarks.addStyleName(ValoTheme.TEXTFIELD_TINY);
 		txtRemarks.setWidth("250px");
 		txtRemarks.setInputPrompt("Remarks");
+		txtRemarks.setDescription("Remarks");
 		grid.addComponent(new Label("Remarks: "), 4, 1);
 		grid.addComponent(txtRemarks, 5, 1, 7, 1);
 
@@ -391,13 +388,10 @@ public class AddEditRequisition extends Window
 		tblRequisitionList.addContainerProperty("Unit Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblRequisitionList.setColumnCollapsed("Unit Id", true);
 
-		tblRequisitionList.addContainerProperty("Category Id", Label.class, new Label(), null, null, Align.CENTER);
-		tblRequisitionList.setColumnCollapsed("Category Id", true);
-
 		tblRequisitionList.addContainerProperty("Rem", Button.class, new Button(), null, null, Align.CENTER);
 		tblRequisitionList.setColumnWidth("Rem", 50);
-		tableRowAdd(0);
 
+		tableRowAdd(0);
 		return tblRequisitionList;
 	}
 
@@ -477,11 +471,6 @@ public class AddEditRequisition extends Window
 			tbLblUnitId.get(ar).setImmediate(true);
 			tbLblUnitId.get(ar).addStyleName(ValoTheme.LABEL_TINY);
 
-			tbLblCatId.add(ar, new Label());
-			tbLblCatId.get(ar).setWidth("100%");
-			tbLblCatId.get(ar).setImmediate(true);
-			tbLblCatId.get(ar).addStyleName(ValoTheme.LABEL_TINY);
-
 			tbBtnRemove.add(ar, new Button());
 			tbBtnRemove.get(ar).setWidth("100%");
 			tbBtnRemove.get(ar).setIcon(FontAwesome.REMOVE);
@@ -491,9 +480,8 @@ public class AddEditRequisition extends Window
 			tbBtnRemove.get(ar).addClickListener(event ->
 			{ removeRow(ar); addChanges(); });
 
-			tblRequisitionList.addItem(new Object[]{tbBtnAddItem.get(ar), tbCmbItemName.get(ar), tbLblUnitName.get(ar),
-					tbLblCatName.get(ar), tbTxtDescription.get(ar), tbAmtStockQty.get(ar), tbAmtRequestQty.get(ar),
-					tbLblUnitId.get(ar), tbLblCatId.get(ar), tbBtnRemove.get(ar)}, ar);
+			tblRequisitionList.addItem(new Object[]{tbBtnAddItem.get(ar), tbCmbItemName.get(ar), tbLblUnitName.get(ar), tbLblCatName.get(ar),
+					tbTxtDescription.get(ar), tbAmtStockQty.get(ar), tbAmtRequestQty.get(ar), tbLblUnitId.get(ar), tbBtnRemove.get(ar)}, ar);
 		}
 		catch(Exception exp)
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table."); }
@@ -529,14 +517,14 @@ public class AddEditRequisition extends Window
 		if (type.equals("4"))
 		{ item = "Semi-Cooked"; }
 
-		sql = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode)iSerial from"+
-				" master.tbRawItemInfo where vItemType = '"+item+"' and iActive = 1 order by iSerial asc";
+		sql = "select vItemId, vItemCode, vItemName, dbo.funGetNumeric(vItemCode) iSerial from master.tbRawItemInfo where"+
+				" vItemType = '"+item+"' and iActive = 1 order by iSerial asc";
+		//System.out.println(sql);
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 			tbCmbItemName.get(ar).addItem(element[0].toString());
-			tbCmbItemName.get(ar).setItemCaption(element[0].toString(),
-					element[1].toString()+" - "+element[2].toString());
+			tbCmbItemName.get(ar).setItemCaption(element[0].toString(), element[1].toString()+" - "+element[2].toString());
 		}
 	}
 
@@ -560,14 +548,15 @@ public class AddEditRequisition extends Window
 		}
 	}
 
-	private void setItemDetails(int ar, String ItemId)
+	private void setItemDetails(int ar, String itemId)
 	{
 		try
 		{
-			String sql = "select U.vUnitName, C.vCategoryName, I.vUnitId, I.vCategoryId, (select dbo.funcStockQty"+
-					" (I.vItemId ,'"+sessionBean.getBranchId()+"')) mStockQty from master.tbRawItemInfo I inner join"+
-					" master.tbUnitInfo U on I.vUnitId = U.iUnitId inner join master.tbItemCategory C on I.vCategoryId"+
-					" = C.vCategoryId where I.vItemId = '"+ItemId+"'";
+			String branId = sessionBean.getBranchId();
+			String sql = "select uni.vUnitName, cat.vCategoryName, rin.vUnitId, cat.vCategoryId, (select dbo.funcStockQty (rin.vItemId, '"+branId+"'))"+
+					" mStockQty from master.tbRawItemInfo rin, master.tbUnitInfo uni, master.tbItemCategory cat where rin.vUnitId = uni.iUnitId and"+
+					" rin.vCategoryId = cat.vCategoryId and rin.vItemId = '"+itemId+"'";
+			//System.out.println(sql);
 			for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 			{
 				Object[] element = (Object[]) iter.next();
@@ -575,7 +564,6 @@ public class AddEditRequisition extends Window
 				tbLblUnitName.get(ar).setValue(element[0].toString());
 				tbLblCatName.get(ar).setValue(element[1].toString());
 				tbLblUnitId.get(ar).setValue(element[2].toString());
-				tbLblCatId.get(ar).setValue(element[3].toString());
 
 				tbAmtStockQty.get(ar).setReadOnly(false);
 				tbAmtStockQty.get(ar).setValue(cm.deciMn.format(Double.parseDouble(element[4].toString())));
@@ -645,10 +633,12 @@ public class AddEditRequisition extends Window
 
 	private void loadSupplier()
 	{
+		String branId = sessionBean.getBranchId();
 		cmbRequestedBranch.removeAllItems();
-		String sqls = "select vBranchId, vBranchName, iBranchTypeId from master.tbBranchMaster where"+
-				" iActive = 1 and vBranchId != '"+sessionBean.getBranchId()+"' order by vBranchName";
-		for (Iterator<?> iter = cm.selectSql(sqls).iterator(); iter.hasNext();)
+		String sql = "select vBranchId, vBranchName, iBranchTypeId from master.tbBranchMaster where iActive = 1 and vBranchId != '"+branId+"'"+
+				" order by vBranchName";
+		//System.out.println(sql);
+		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
 			cmbRequestedBranch.addItem(element[0].toString());

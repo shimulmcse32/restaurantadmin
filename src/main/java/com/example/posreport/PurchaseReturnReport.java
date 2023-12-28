@@ -40,7 +40,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class PurchaseSalesReport extends VerticalLayout implements View
+public class PurchaseReturnReport extends VerticalLayout implements View
 {
 	private SessionBean sessionBean;
 
@@ -49,25 +49,22 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	private PopupDateField txtFromDateItemPurchase, txtToDateItemPurchase;
 	private MultiComboBox cmbItemPurchase; 
 	private OptionGroup ogReportFormatItemPurchase, ogReportItemFlag;
-	private Panel panelItemPurchase;
 
 	//Supplier Wise Purchase Summary Report
 	private CommonButton cBtnSupPurchase = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateSupPurchase, txtToDateSupPurchase;
 	private MultiComboBox cmbSupPurchase; 
 	private OptionGroup ogReportFormatSupPurchase, ogReportSupFlag;
-	private Panel panelSupPurchase;
 
 	//Purchase Summary Report
 	private CommonButton cBtnSupPurchaseSummary = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private PopupDateField txtFromDateSupPurchaseSummary, txtToDateSupPurchaseSummary;
 	private MultiComboBox cmbSupPurchaseSummary, cmbItemPurchaseSummary; 
 	private OptionGroup ogReportFormatSupPurchaseSummary;
-	private Panel panelSupPurchaseSummary;
 
 	private CommonMethod cm;
 
-	public PurchaseSalesReport(SessionBean sessionBean, String formId)
+	public PurchaseReturnReport(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
 		cm = new CommonMethod(this.sessionBean);
@@ -75,14 +72,6 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 		setSpacing(true);
 
 		addComponents(addSupPurchase(), addItemPurchase(), addSupPurchaseSummary());
-
-		addActionsSupPurchase();
-		addActionsItemPurchase();
-		addActionsSupPurchaseSummary();
-
-		loadSupplierPurchase();
-		loadItemPurchase();
-		loadSupplierPurchaseSummary();
 	}
 
 	private boolean checkTwoDate(Object from, Object to)
@@ -102,14 +91,14 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 
 		if (ogReportSupFlag.getValue().equals("Purchase"))
 		{
-			sql = "select sm.vSupplierId, sm.vSupplierCode, sm.vSupplierName, dbo.funGetNumeric(vSupplierCode)iSerial"+
+			sql = "select sm.vSupplierId, sm.vSupplierCode, sm.vSupplierName, dbo.funGetNumeric(vSupplierCode) iSerial"+
 					" from master.tbSupplierMaster sm where sm.vSupplierId in (select distinct pin.vSupplierId from"+
 					" trans.tbPurchaseInfo pin where pin.dPurchaseDate between '"+fromDate+"' and '"+toDate+"') order"+
 					" by iSerial, vSupplierName";
 		}
 		else
 		{
-			sql = "select sm.vSupplierId, sm.vSupplierCode, sm.vSupplierName, dbo.funGetNumeric(vSupplierCode)iSerial"+
+			sql = "select sm.vSupplierId, sm.vSupplierCode, sm.vSupplierName, dbo.funGetNumeric(vSupplierCode) iSerial"+
 					" from master.tbSupplierMaster sm where sm.vSupplierId in (select distinct pin.vSupplierId from"+
 					" trans.tbPurchaseReturnInfo pri, trans.tbPurchaseInfo pin where pri.vPurchaseId = pin.vPurchaseId"+
 					" and pri.dReturnDate between '"+fromDate+"' and '"+toDate+"') order by iSerial, vSupplierName";
@@ -128,23 +117,21 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	private void loadItemPurchase()
 	{
 		cmbItemPurchase.removeAllItems();
-		String fromDate = cm.dfDb.format(txtFromDateItemPurchase.getValue());
+		String fmDate = cm.dfDb.format(txtFromDateItemPurchase.getValue());
 		String toDate = cm.dfDb.format(txtToDateItemPurchase.getValue());
 		String sql = "", caption = "";
 
 		if (ogReportSupFlag.getValue().equals("Purchase"))
 		{
-			sql = "select rin.vItemId, rin.vItemCode, rin.vItemName, dbo.funGetNumeric(vItemCode)iSerial from"+
-					" master.tbRawItemInfo rin where rin.vItemId in (select distinct pud.vItemId from trans.tbPurchaseInfo"+
-					" pui, trans.tbPurchaseDetails pud where pui.vPurchaseId = pud.vPurchaseId and pui.dPurchaseDate"+
-					" between '"+fromDate+"' and '"+toDate+"') order by iSerial, vItemName";
+			sql = "select rin.vItemId, rin.vItemCode, rin.vItemName from master.tbRawItemInfo rin, trans.tbPurchaseInfo pui,"+
+					" trans.tbPurchaseDetails pud where pui.vPurchaseId = pud.vPurchaseId and pud.vItemId = rin.vItemId and"+
+					" pui.dPurchaseDate between '"+fmDate+"' and '"+toDate+"' order by dbo.funGetNumeric(rin.vItemCode), rin.vItemName";
 		}
 		else
 		{
-			sql = "select rin.vItemId, rin.vItemCode, rin.vItemName, dbo.funGetNumeric(vItemCode)iSerial from"+
-					" master.tbRawItemInfo rin where rin.vItemId in (select distinct pud.vItemId from trans.tbPurchaseReturnInfo"+
-					" pui, trans.tbPurchaseReturnDetails pud where pui.vPurchaseId = pud.vPurchaseId and pui.dReturnDate"+
-					" between '"+fromDate+"' and '"+toDate+"') order by iSerial, vItemName";
+			sql = "select rin.vItemId, rin.vItemCode, rin.vItemName from master.tbRawItemInfo rin, trans.tbPurchaseReturnInfo pui,"+
+					" trans.tbPurchaseReturnDetails pud where pui.vReturnId = pud.vReturnId and pud.vItemId = rin.vItemId and"+
+					" pui.dReturnDate between '"+fmDate+"' and '"+toDate+"' order by dbo.funGetNumeric(rin.vItemCode), rin.vItemName";
 		}
 
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
@@ -160,12 +147,11 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	private void loadSupplierPurchaseSummary()
 	{
 		cmbSupPurchaseSummary.removeAllItems();
-		String fromDate = cm.dfDb.format(txtFromDateSupPurchaseSummary.getValue());
+		String fmDate = cm.dfDb.format(txtFromDateSupPurchaseSummary.getValue());
 		String toDate = cm.dfDb.format(txtToDateSupPurchaseSummary.getValue());
 
-		String sql = "select distinct vSupplierId,(select vSupplierName from master.tbSupplierMaster where"+
-				" vSupplierId = a.vSupplierId) vSupplierName from trans.tbPurchaseInfo a where dPurchaseDate"+
-				" between '"+fromDate+"' and '"+toDate+"' order by vSupplierName";
+		String sql = "select distinct vSupplierId, (select vSupplierName from master.tbSupplierMaster where vSupplierId = a.vSupplierId)"+
+				" vSupplierName from trans.tbPurchaseInfo a where dPurchaseDate between '"+fmDate+"' and '"+toDate+"' order by vSupplierName";
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -177,14 +163,13 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	private void loadItemPurchaseSummary()
 	{
 		cmbItemPurchaseSummary.removeAllItems();
-		String fromDate = cm.dfDb.format(txtFromDateSupPurchaseSummary.getValue());
+		String fmDate = cm.dfDb.format(txtFromDateSupPurchaseSummary.getValue());
 		String toDate = cm.dfDb.format(txtToDateSupPurchaseSummary.getValue());
-		String supplierIds =  cmbSupPurchaseSummary.getValue().toString() == null?
-				"%":cmbSupPurchaseSummary.getValue().toString().replace("]", "").replace("[", "").trim();
+		String supplierIds =  cm.getMultiComboValue(cmbSupPurchaseSummary).isEmpty()? "%":cm.getMultiComboValue(cmbSupPurchaseSummary);
 
 		String sql = "select distinct vItemId,(select vItemName from master.tbRawItemInfo where vItemId = b.vItemId)"+
 				" vItemName from trans.tbPurchaseInfo a inner join trans.tbPurchaseDetails b on a.vPurchaseId ="+
-				" b.vPurchaseId where dPurchaseDate between '"+fromDate+"' and '"+toDate+"' and a.vSupplierId in"+
+				" b.vPurchaseId where dPurchaseDate between '"+fmDate+"' and '"+toDate+"' and a.vSupplierId in"+
 				" (select Item from dbo.Split('"+supplierIds+"')) order by vItemName";
 		for (Iterator<?> iter = cm.selectSql(sql).iterator(); iter.hasNext();)
 		{
@@ -197,14 +182,14 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	//Supplier Wise Purchase Report Start
 	private Panel addSupPurchase()
 	{
-		panelSupPurchase = new Panel("Supplier Wise Purchase/Return Details :: "+sessionBean.getCompanyName()+
+		Panel panelSupPurchase = new Panel("Supplier Wise Purchase/Return Details :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
 		content.setSizeFull();
 
-		GridLayout lay = new GridLayout(2, 6);
+		GridLayout lay = new GridLayout(4, 6);
 		lay.setSpacing(true);
 
 		ogReportSupFlag = new OptionGroup();
@@ -264,6 +249,7 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 		content.setComponentAlignment(lay, Alignment.MIDDLE_CENTER);
 		panelSupPurchase.setContent(content);
 
+		addActionsSupPurchase();
 		return panelSupPurchase;
 	}
 
@@ -436,7 +422,7 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	//Item Wise Purchase Report Start
 	private Panel addItemPurchase()
 	{
-		panelItemPurchase = new Panel("Item Wise Purchase/Return Details :: "+sessionBean.getCompanyName()+
+		Panel panelItemPurchase = new Panel("Item Wise Purchase/Return Details :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -503,6 +489,7 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 		content.setComponentAlignment(lay, Alignment.MIDDLE_CENTER);
 		panelItemPurchase.setContent(content);
 
+		addActionsItemPurchase();
 		return panelItemPurchase;
 	}
 
@@ -665,7 +652,7 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 	//Purchase Summary Start
 	private Panel addSupPurchaseSummary()
 	{
-		panelSupPurchaseSummary = new Panel("Purchase Summary Report:: "+sessionBean.getCompanyName()+
+		Panel panelSupPurchaseSummary = new Panel("Purchase Summary Report:: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSpacing(true);
@@ -731,6 +718,7 @@ public class PurchaseSalesReport extends VerticalLayout implements View
 		content.setComponentAlignment(lay, Alignment.MIDDLE_CENTER);
 		panelSupPurchaseSummary.setContent(content);
 
+		addActionsSupPurchaseSummary();
 		return panelSupPurchaseSummary;
 	}
 

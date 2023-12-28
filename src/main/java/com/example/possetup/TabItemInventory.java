@@ -27,7 +27,7 @@ public class TabItemInventory extends HorizontalLayout
 
 	public ComboBox cmbRawCategory, cmbRawUnit;
 	public OptionGroup ogRawItemType;
-	public CommaField txtCostMargin;
+	public CommaField txtCostMargin, txtCostPrice;
 
 	private Button btnAddRawUnit, btnAddRawCat;
 
@@ -54,10 +54,10 @@ public class TabItemInventory extends HorizontalLayout
 
 	private void addEditRawCategory()
 	{
-		String categoryId = cm.getComboValue(cmbRawCategory);
-		String addEdit = categoryId.isEmpty()? "Add":"Edit";
+		String catId = cm.getComboValue(cmbRawCategory);
+		String addEdit = catId.isEmpty()? "Add":"Edit";
 
-		AddEditItemCategory win = new AddEditItemCategory(sessionBean, addEdit, categoryId, "Raw");
+		AddEditItemCategory win = new AddEditItemCategory(sessionBean, addEdit, catId, "Raw");
 		getUI().addWindow(win);
 		win.center();
 		win.setModal(true);
@@ -82,8 +82,8 @@ public class TabItemInventory extends HorizontalLayout
 
 	public void loadRawCombo()
 	{
-		String sqlR = "select vCategoryId, vCategoryName from master.tbItemCategory where"+
-				" vCategoryType = 'Raw' and iActive = 1 order by vCategoryType, vCategoryName";
+		String sqlR = "select vCategoryId, vCategoryName from master.tbItemCategory where vCategoryType = 'Raw' and iActive = 1 order"+
+				" by vCategoryType, vCategoryName";
 		for (Iterator<?> iter = cm.selectSql(sqlR).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -91,8 +91,7 @@ public class TabItemInventory extends HorizontalLayout
 			cmbRawCategory.setItemCaption(element[0].toString(), element[1].toString());
 		}
 
-		String sqlU = "select iUnitId, vUnitName from master.tbUnitInfo where"+
-				" vUnitType = 'Raw' and iActive = 1 order by vUnitName";
+		String sqlU = "select iUnitId, vUnitName from master.tbUnitInfo where vUnitType = 'Raw' and iActive = 1 order by vUnitName";
 		for (Iterator<?> iter = cm.selectSql(sqlU).iterator(); iter.hasNext();)
 		{
 			Object[] element = (Object[]) iter.next();
@@ -114,7 +113,7 @@ public class TabItemInventory extends HorizontalLayout
 
 		ogRawItemType = new OptionGroup();
 		ogRawItemType.addItem("Raw");
-		//ogRawItemType.addItem("Semi-Cooked");
+		ogRawItemType.addItem("Semi-Cooked");
 		ogRawItemType.select("Raw");
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		ogRawItemType.addStyleName(ValoTheme.OPTIONGROUP_SMALL);
@@ -125,6 +124,7 @@ public class TabItemInventory extends HorizontalLayout
 		groups.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
 		cmbRawCategory = new ComboBox();
+		cmbRawCategory.setNullSelectionAllowed(false);
 		cmbRawCategory.setImmediate(true);
 		cmbRawCategory.setFilteringMode(FilteringMode.CONTAINS);
 		cmbRawCategory.addStyleName(ValoTheme.COMBOBOX_TINY);
@@ -162,32 +162,25 @@ public class TabItemInventory extends HorizontalLayout
 		group.addComponents(cmbRawUnit, btnAddRawUnit);
 		grid.addComponent(group, 1, 3, 3, 3);
 
-		/*Label lblCostPrice = new Label("Cost Price : ");
-		lblCostPrice.setWidth("100px");
-
+		group = new CssLayout();
+		group.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 		txtCostPrice = new CommaField();
-		txtCostPrice.setWidth("70px");
-		txtCostPrice.setValue("0");
 		txtCostPrice.setImmediate(true);
-		txtCostPrice.setInputPrompt("Cost Price");
-		txtCostPrice.setDescription("Cost Price");
-		txtCostPrice.addStyleName(ValoTheme.TEXTFIELD_TINY);
-
-		CssLayout cssCostPrice = new CssLayout();
-		cssCostPrice.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-		cssCostPrice.addComponents(lblCostPrice, txtCostPrice);
-		grid.addComponent(cssCostPrice, 0, 4, 4, 4);*/
+		txtCostPrice.addStyleName(ValoTheme.TEXTAREA_TINY);
+		txtCostPrice.setWidth("50%");
+		txtCostPrice.setDescription("Cost Rate");
+		txtCostPrice.setInputPrompt("Cost Rate");
 
 		txtCostMargin = new CommaField();
-		txtCostMargin.setWidth("80px");
-		txtCostMargin.setValue("0");
-		txtCostMargin.setMaxValue(100);
 		txtCostMargin.setImmediate(true);
-		txtCostMargin.setInputPrompt("%");
-		txtCostMargin.setDescription("Cost Margin(%)");
-		txtCostMargin.addStyleName(ValoTheme.TEXTFIELD_TINY);
-		grid.addComponent(new Label("Cost Margin(%): "), 0, 4);
-		grid.addComponent(txtCostMargin, 1, 4, 3, 4);
+		txtCostMargin.addStyleName(ValoTheme.TEXTAREA_TINY);
+		txtCostMargin.setWidth("50%");
+		txtCostMargin.setDescription("Cost Margin On Transfer");
+		txtCostMargin.setMaxLength(2);
+		txtCostMargin.setInputPrompt("Cost Margin(%)");
+		group.addComponents(txtCostPrice, txtCostMargin);
+		grid.addComponent(new Label("Cost Details: "), 0, 4);
+		grid.addComponent(group, 1, 4, 3, 4);
 
 		return grid;
 	}
@@ -199,8 +192,8 @@ public class TabItemInventory extends HorizontalLayout
 		iim.setRawCategory(cm.getComboValue(cmbRawCategory));
 		iim.setRawUnit(cm.getComboValue(cmbRawUnit));
 		iim.setCostMargin(cm.getAmtValue(txtCostMargin));
-		//iim.setIssueRate(txtCostPrice.getValue() != null? cm.getAmtValue(txtCostPrice):0);
-		iim.setIssueRate(0);
+		iim.setCostPrice(cm.getAmtValue(txtCostPrice));
+		//iim.setIssueRate(0);
 	}
 
 	public void setValue(ItemInfoModel iim)
@@ -210,7 +203,7 @@ public class TabItemInventory extends HorizontalLayout
 			ogRawItemType.setValue(iim.getItemTypeRaw().isEmpty()? "Raw":iim.getItemTypeRaw().isEmpty());
 			cmbRawCategory.setValue(iim.getRawCategory());
 			cmbRawUnit.setValue(iim.getRawUnit());
-			//txtCostPrice.setValue(iim.getIssueRate());
+			txtCostPrice.setValue(iim.getCostPrice());
 			txtCostMargin.setValue(iim.getCostMargin());
 		}
 	}
@@ -220,6 +213,7 @@ public class TabItemInventory extends HorizontalLayout
 		ogRawItemType.setValue(null);
 		cmbRawCategory.setValue(null);
 		cmbRawUnit.setValue(null);
+		txtCostPrice.setValue("");
 		txtCostMargin.setValue("");
 	}
 }

@@ -243,6 +243,7 @@ public class AddEditItemCategory extends Window
 		chkShowOnline.setValue(true);
 		chkShowOnline.addStyleName(ValoTheme.CHECKBOX_SMALL);
 		chkShowOnline.setDescription("Save as for show online.");
+		chkShowOnline.setVisible(!catType.equals("Raw"));
 		grid.addComponent(chkShowOnline, 1, 4);
 
 		grid.addComponent(cBtn, 0, 5, 8, 5);

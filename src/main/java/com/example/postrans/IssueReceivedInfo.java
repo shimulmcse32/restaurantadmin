@@ -60,16 +60,14 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 	private ArrayList<Label> tbLblIssueBy = new ArrayList<Label>();
 	private ArrayList<Label> tbLblIssueTo = new ArrayList<Label>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
+
 	private SessionBean sessionBean;
-	private Panel pnlTable;
-
-	private IssueInfoGateway iig = new IssueInfoGateway();
-
 	private PopupDateField txtFromDate, txtToDate;
 	private ComboBox cmbBranchName;
 	private TextField txtSearch;
 
 	private CommonMethod cm;
+	private IssueInfoGateway iig = new IssueInfoGateway();
 
 	public IssueReceivedInfo(SessionBean sessionBean, String formId)
 	{
@@ -78,14 +76,9 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
-
-		buildTable();
 		cBtn.btnSave.setCaption("Received");
 		addComponents(addPanel(), cBtn);
 		setComponentAlignment(cBtn, Alignment.BOTTOM_CENTER);
-		cBtn.btnSave.setEnabled(cm.insert);
 
 		loadComboData();
 		addActions();
@@ -94,30 +87,24 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 	private void addActions()
 	{
 		cBtn.btnSave.addClickListener(event ->
-			{
-				if (checkTable())
-				{ receivedIssue(); }
-				else
-				{ cm.showNotification("warning", "Warning!", "Select Issue from the table."); }
-			});
+		{
+			if (checkTable())
+			{ receivedIssue(); }
+			else
+			{ cm.showNotification("warning", "Warning!", "Select Issue from the table."); }
+		});
 
 		cBtn.btnRefresh.addClickListener(event ->
-			{ loadTableInfo(); });
+		{ loadTableInfo(); });
 
 		cBtnS.btnSearch.addClickListener(event ->
-			{ loadTableInfo(); });
+		{ loadTableInfo(); });
 
 		txtFromDate.addValueChangeListener(event ->
-			{ loadComboData(); });
+		{ loadComboData(); });
 
 		txtToDate.addValueChangeListener(event ->
-			{ loadComboData(); });
-
-		tblPendingIssueList.addHeaderClickListener(event -> 
-			{
-				if (event.getPropertyId().toString().equalsIgnoreCase("Select"))
-				{ selectAll(); }
-			});
+		{ loadComboData(); });
 	}
 
 	private boolean checkTable()
@@ -150,8 +137,9 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Pending Issue List :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Pending Issue List :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
+
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
 		content.setMargin(true);
@@ -198,6 +186,7 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 		cBtnS.btnSearch.setStyleName(ValoTheme.BUTTON_TINY);
 		hori.addComponents(txtFromDate, txtToDate, cmbBranchName, txtSearch, cBtnS);
 
+		buildTable();
 		content.addComponents(hori, tblPendingIssueList, tblPendingIssueList.createControls());
 		pnlTable.setContent(content);
 
@@ -207,6 +196,11 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblPendingIssueList = new TablePaged();
+		tblPendingIssueList.addHeaderClickListener(event -> 
+		{
+			if (event.getPropertyId().toString().equalsIgnoreCase("Select"))
+			{ selectAll(); }
+		});
 
 		tblPendingIssueList.addContainerProperty("Issue Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblPendingIssueList.setColumnCollapsed("Issue Id", true);
@@ -247,7 +241,7 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 			tbChkSelect.get(ar).setStyleName(ValoTheme.CHECKBOX_SMALL);
 			tbChkSelect.get(ar).setDescription("Select to received");
 			tbChkSelect.get(ar).addValueChangeListener(event ->
-				{ setTotalAmount(); });
+			{ setTotalAmount(); });
 
 			tbLblIssueNo.add(ar, new Label());
 			tbLblIssueNo.get(ar).setWidth("100%");
@@ -290,15 +284,15 @@ public class IssueReceivedInfo extends VerticalLayout implements View
 			tbCmbAction.get(ar).setTextInputAllowed(false);
 			tbCmbAction.get(ar).setNullSelectionAllowed(false);
 			tbCmbAction.get(ar).addValueChangeListener(event ->
+			{
+				String vissueId = tbLblIssueId.get(ar).getValue().toString();
+				if (!vissueId.isEmpty() && tbCmbAction.get(ar).getValue() != null)
 				{
-					String vissueId = tbLblIssueId.get(ar).getValue().toString();
-					if (!vissueId.isEmpty() && tbCmbAction.get(ar).getValue() != null)
-					{
-						String action = tbCmbAction.get(ar).getValue().toString();
-						if (action.equals("Preview(PDF)"))
-						{ viewReportSingle(vissueId); }
-					}
-					tbCmbAction.get(ar).select(null);
+					String action = tbCmbAction.get(ar).getValue().toString();
+					if (action.equals("Preview(PDF)"))
+					{ viewReportSingle(vissueId); }
+				}
+				tbCmbAction.get(ar).select(null);
 			});
 			tblPendingIssueList.addItem(new Object[]{tbLblIssueId.get(ar), tbChkSelect.get(ar), tbLblIssueNo.get(ar),
 					tbLblIssueDate.get(ar), tbLblAmount.get(ar), tbLblReceivedBy.get(ar), tbLblIssueBy.get(ar),

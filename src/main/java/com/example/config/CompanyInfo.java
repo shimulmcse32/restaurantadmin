@@ -45,20 +45,18 @@ public class CompanyInfo extends VerticalLayout implements View
 	private ArrayList<CheckBox> tbChkActive = new ArrayList<CheckBox>();
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 
 	private CommonMethod cm;
+	//private String formId;
 
 	public CompanyInfo(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		//this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
-
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 
 		addComponents(addPanel());
 
@@ -67,7 +65,7 @@ public class CompanyInfo extends VerticalLayout implements View
 
 	private void addActions()
 	{
-		txtSearch.addValueChangeListener(event -> loadCompanyInfo());
+		txtSearch.addValueChangeListener(event -> loadTableInfo());
 	}
 
 	private void addEditWindow(String addEdit, String companyId, String ar)
@@ -82,13 +80,13 @@ public class CompanyInfo extends VerticalLayout implements View
 		{
 			if (!ar.isEmpty())
 			{ tbCmbAction.get(Integer.parseInt(ar)).setEnabled(true); }
-			loadCompanyInfo();
+			loadTableInfo();
 		});
 	}
 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Company Information :: "+sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Company Information :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -197,7 +195,7 @@ public class CompanyInfo extends VerticalLayout implements View
 		{ cm.showNotification("failure", "Error!", "Can't add rows to table"); }
 	}
 
-	private void loadCompanyInfo()
+	private void loadTableInfo()
 	{
 		String search = "%"+txtSearch.getValue().toString().replaceAll("'", "")+"%";
 		tableClear();
@@ -235,5 +233,5 @@ public class CompanyInfo extends VerticalLayout implements View
 	{ cm.tableClear(tblCompanyList, tbLblCompanyId); }
 
 	public void enter(ViewChangeEvent event)
-	{ loadCompanyInfo(); }
+	{ loadTableInfo(); }
 }

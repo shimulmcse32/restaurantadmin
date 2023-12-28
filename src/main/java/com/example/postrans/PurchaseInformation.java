@@ -68,7 +68,6 @@ public class PurchaseInformation extends VerticalLayout implements View
 	private ArrayList<ComboBox> tbCmbAction = new ArrayList<ComboBox>();
 
 	private SessionBean sessionBean;
-	private Panel pnlTable;
 	private TextField txtSearch;
 	private ComboBox cmbSupplierName, cmbStatus;
 	private PopupDateField txtFromDate, txtToDate;
@@ -76,16 +75,15 @@ public class PurchaseInformation extends VerticalLayout implements View
 
 	private CommonMethod cm;
 	private PurchaseInfoGateway pig = new PurchaseInfoGateway();
+	private String formId;
 
 	///Report panel  purchases
-	private Panel panelReport;
 	private PopupDateField txtFromDateReport, txtToDateReport;
 	private CommonButton cBtnReport = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup  ogReportFormatReport;
 	private ComboBox cmbStatusReport;
 
 	//Report panel Supplier purchases
-	private Panel panelAging;
 	private ComboBox cmbSupAging;
 	private CommonButton cBtnAging = new CommonButton("", "", "", "", "", "", "", "View", "");
 	private OptionGroup ogReportTypeAging, ogReportFormatAging;
@@ -93,14 +91,12 @@ public class PurchaseInformation extends VerticalLayout implements View
 	public PurchaseInformation(SessionBean sessionBean, String formId)
 	{
 		this.sessionBean = sessionBean;
+		this.formId = formId;
 		cm = new CommonMethod(this.sessionBean);
 		setMargin(true);
 		setSpacing(true);
 
-		//Check authorization
-		cm.setAuthorize(sessionBean.getUserId(), formId);
 		addComponents(cBtn, addPanel(), addReportPanel());
-		cBtn.btnNew.setEnabled(cm.insert);
 
 		addActions();
 		loadSupplier();
@@ -131,16 +127,6 @@ public class PurchaseInformation extends VerticalLayout implements View
 
 		txtToDate.addValueChangeListener(event ->
 		{ checkSearchSupplierLoad(); });
-
-		tblPurchaseList.addItemClickListener(event ->
-		{
-			if (event.isDoubleClick() && cm.update)
-			{
-				int ar = Integer.valueOf(event.getItemId()+"");
-				String id = tbLblPurchaseId.get(ar).getValue().toString();
-				EditSelectPurchase(id, ar);
-			}
-		});
 	}
 
 	//Table Method
@@ -578,7 +564,7 @@ public class PurchaseInformation extends VerticalLayout implements View
 	//Table panel start 
 	private Panel addPanel()
 	{
-		pnlTable = new Panel("Purchase List :: "+this.sessionBean.getCompanyName()+
+		Panel pnlTable = new Panel("Purchase List :: "+this.sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
@@ -640,6 +626,15 @@ public class PurchaseInformation extends VerticalLayout implements View
 	private void buildTable()
 	{
 		tblPurchaseList = new TablePaged();
+		tblPurchaseList.addItemClickListener(event ->
+		{
+			if (event.isDoubleClick() && cm.update)
+			{
+				int ar = Integer.valueOf(event.getItemId()+"");
+				String id = tbLblPurchaseId.get(ar).getValue().toString();
+				EditSelectPurchase(id, ar);
+			}
+		});
 
 		tblPurchaseList.addContainerProperty("Purchase Id", Label.class, new Label(), null, null, Align.CENTER);
 		tblPurchaseList.setColumnCollapsed("Purchase Id", true);
@@ -777,7 +772,7 @@ public class PurchaseInformation extends VerticalLayout implements View
 	//Report Panel Purchase Start
 	private Panel addPurchasePanel()
 	{
-		panelReport = new Panel("Purchase Report :: "+sessionBean.getCompanyName()+
+		Panel panelReport = new Panel("Purchase Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		panelReport.setHeight("300px");
 		HorizontalLayout content = new HorizontalLayout();
@@ -848,7 +843,7 @@ public class PurchaseInformation extends VerticalLayout implements View
 	//Report Panel Aging Start
 	private Panel addAgingReport()
 	{
-		panelAging = new Panel("Aging Report :: "+sessionBean.getCompanyName()+
+		Panel panelAging = new Panel("Aging Report :: "+sessionBean.getCompanyName()+
 				" ("+this.sessionBean.getBranchName()+")");
 		panelAging.setHeight("300px");
 		HorizontalLayout content = new HorizontalLayout();
@@ -894,7 +889,11 @@ public class PurchaseInformation extends VerticalLayout implements View
 
 	public void enter(ViewChangeEvent event)
 	{
+		//Check authorization
+		cm.setAuthorize(sessionBean.getUserId(), formId);
+		cBtn.btnNew.setEnabled(cm.insert);
 		loadTableInfo();
+
 		loadComboAging();
 	}
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rptItemStockValue" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.zoom" value="2.415765000000001"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<style name="BOLD" forecolor="#000000" backcolor="#000000" fill="Solid" markup="styled" fontSize="10" isItalic="false" isUnderline="false" isStrikeThrough="false">
@@ -72,7 +72,7 @@
 					<reportElement x="489" y="1" width="65" height="14"/>
 					<box rightPadding="2"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true"/>
+						<font size="8" isBold="true"/>
 					</textElement>
 					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{groupTotal}]]></textFieldExpression>
 				</textField>
@@ -183,20 +183,20 @@
 				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="306" y="1" width="90" height="14"/>
+				<reportElement x="316" y="1" width="80" height="14"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Vat Details]]></text>
 			</staticText>
 			<line>
-				<reportElement x="305" y="0" width="1" height="16"/>
+				<reportElement x="315" y="0" width="1" height="16"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="260" y="1" width="45" height="14"/>
+				<reportElement x="260" y="1" width="55" height="14"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
@@ -290,7 +290,7 @@
 				</graphicElement>
 			</line>
 			<line>
-				<reportElement stretchType="RelativeToTallestObject" x="305" y="-1" width="1" height="16"/>
+				<reportElement stretchType="RelativeToTallestObject" x="315" y="-1" width="1" height="16"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
@@ -311,30 +311,30 @@
 				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="22" y="0" width="237" height="14"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vItemDetails}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="260" y="0" width="45" height="14"/>
+				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="260" y="0" width="55" height="14"/>
 				<box leftPadding="2"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vUnitName}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="306" y="0" width="90" height="14"/>
+				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="316" y="0" width="80" height="14"/>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vVatCatName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1" y="0" width="20" height="14"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sl}]]></textFieldExpression>
 			</textField>
@@ -360,15 +360,15 @@
 				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="443" y="0" width="45" height="14"/>
 				<box leftPadding="0" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mCostRate}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;(-#,##0.00)">
 				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="397" y="0" width="45" height="14"/>
 				<box leftPadding="0" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mStockQty}]]></textFieldExpression>
 			</textField>
@@ -376,7 +376,7 @@
 				<reportElement style="BOLD" positionType="Float" stretchType="RelativeToTallestObject" x="489" y="0" width="65" height="14"/>
 				<box leftPadding="0" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
-					<font size="9"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mAmount}]]></textFieldExpression>
 			</textField>
@@ -440,7 +440,7 @@
 				<reportElement x="489" y="1" width="65" height="14"/>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font isBold="true"/>
+					<font size="8" isBold="true"/>
 				</textElement>
 				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{grandTotal}]]></textFieldExpression>
 			</textField>

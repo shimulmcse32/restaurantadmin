@@ -85,12 +85,17 @@ public class StockAdjustmentGateway
 		{
 			if (flag.equals("Add"))
 			{
-				String sql = "insert into trans.tbStockAdjustmentInfo (vBranchId, vAdjustId, vAdjustNo, dAdjustDate,"+
-						" vReferenceNo, vRemarks, vStatusId, vApprovedBy, vApproveTime, vCancelledBy, vCancelledTime,"+
-						" vCancelReason, iActive, vCreatedBy, dCreatedDate, vModifiedBy, dModifiedDate)"+
-						" values (:branchId, :adjustId, :adjustNo, :adjustDate, :referenceNo, :remarks, :statusId,"+
-						" :approvedBy, :approvedTime, :cancelledBy, :cancelledTime, :cancelReason, 1, :createdBy,"+
-						" getDate(), :modifiedBy, getDate())";
+				if (!sam.getDetailsSql().isEmpty() && sam.getDetailsSql() != null)
+				{
+					SQLQuery insertUnit = session.createSQLQuery(sam.getDetailsSql());
+					insertUnit.executeUpdate();
+				}
+
+				String sql = "insert into trans.tbStockAdjustmentInfo (vBranchId, vAdjustId, vAdjustNo, dAdjustDate, vReferenceNo,"+
+						" vRemarks, vStatusId, vApprovedBy, vApproveTime, vCancelledBy, vCancelledTime, vCancelReason, iActive,"+
+						" vCreatedBy, dCreatedDate, vModifiedBy, dModifiedDate) values (:branchId, :adjustId, :adjustNo, :adjustDate,"+
+						" :referenceNo, :remarks, :statusId, :approvedBy, :approvedTime, :cancelledBy, :cancelledTime, :cancelReason,"+
+						" 1, :createdBy, getDate(), :modifiedBy, getDate())";
 				SQLQuery insert = session.createSQLQuery(sql);
 				insert.setParameter("branchId", sam.getBranchId());
 				insert.setParameter("adjustId", sam.getAdjustId());
@@ -107,18 +112,18 @@ public class StockAdjustmentGateway
 				insert.setParameter("approvedTime", "");
 				insert.setParameter("cancelReason", sam.getCancelReason());
 				insert.executeUpdate();
-
-				if (!sam.getDetailsSql().isEmpty() && sam.getDetailsSql() != null)
+			}
+			else if (flag.equals("Edit"))
+			{
+				if (!sam.getDetailsSql().isEmpty() && sam.getDetailsSql() != null &&
+						sam.getDetailsChange())
 				{
 					SQLQuery insertUnit = session.createSQLQuery(sam.getDetailsSql());
 					insertUnit.executeUpdate();
 				}
-			}
-			else if (flag.equals("Edit"))
-			{
-				String sql = "update trans.tbStockAdjustmentInfo set dAdjustDate = :adjustDate,"+
-						" vRemarks = :remarks, vModifiedBy = :modifiedBy, dModifiedDate = getDate(),"+
-						" vReferenceNo = :referenceNo where vAdjustId = :adjustId";
+
+				String sql = "update trans.tbStockAdjustmentInfo set dAdjustDate = :adjustDate, vRemarks = :remarks, vModifiedBy"+
+						" = :modifiedBy, dModifiedDate = getDate(), vReferenceNo = :referenceNo where vAdjustId = :adjustId";
 				SQLQuery insert = session.createSQLQuery(sql);
 				insert.setParameter("adjustId", sam.getAdjustId());
 				insert.setParameter("adjustDate", sam.getAdjustDate());
@@ -126,13 +131,6 @@ public class StockAdjustmentGateway
 				insert.setParameter("modifiedBy", sam.getCreatedBy());
 				insert.setParameter("referenceNo", sam.getReferenceNo());
 				insert.executeUpdate();
-
-				if (!sam.getDetailsSql().isEmpty() && sam.getDetailsSql() != null &&
-						sam.getDetailsChange())
-				{
-					SQLQuery insertUnit = session.createSQLQuery(sam.getDetailsSql());
-					insertUnit.executeUpdate();
-				}
 			}
 			tx.commit();
 			ret = true;
@@ -150,9 +148,8 @@ public class StockAdjustmentGateway
 	{
 		boolean ret = false;
 
-		String sql = " update trans.tbStockAdjustmentDetails set iActive = (select case when iActive = 1"+
-				" then 0 else 1 end from trans.tbStockAdjustmentInfo where vAdjustId = '"+adjustId+"')"+
-				" where vAdjustId = '"+adjustId+"'";
+		String sql = " update trans.tbStockAdjustmentDetails set iActive = (select case when iActive = 1 then 0 else 1 end"+
+				" from trans.tbStockAdjustmentInfo where vAdjustId = '"+adjustId+"') where vAdjustId = '"+adjustId+"'";
 
 		sql += "update trans.tbStockAdjustmentInfo set iActive = (select case when iActive = 1"+
 				" then 0 else 1 end from trans.tbStockAdjustmentInfo where vAdjustId = '"+adjustId+"'),"+
@@ -183,9 +180,8 @@ public class StockAdjustmentGateway
 		try
 		{
 			String update = "";
-			update = " update trans.tbStockAdjustmentInfo set vCancelledBy = :cancelledBy,"+
-					" vCancelledTime = getdate(), vCancelReason = :cancelReason, vModifiedBy = :modifiedBy,"+
-					" dModifiedDate = getdate(), vStatusId = :statusId where vAdjustId = :adjustId";
+			update = " update trans.tbStockAdjustmentInfo set vCancelledBy = :cancelledBy, vCancelledTime = getdate(), vCancelReason"+
+					" = :cancelReason, vModifiedBy = :modifiedBy, dModifiedDate = getdate(), vStatusId = :statusId where vAdjustId = :adjustId";
 			SQLQuery updateSql = session.createSQLQuery(update);
 			updateSql.setParameter("cancelledBy", sam.getCancelBy());
 			updateSql.setParameter("cancelReason", sam.getCancelReason());
@@ -219,7 +215,6 @@ public class StockAdjustmentGateway
 			String sqlApprove = "update trans.tbStockAdjustmentInfo set vStatusId = 'S6', vApprovedBy = '"+userId+"',"+
 					" vApproveTime = '"+purDate+"', vModifiedBy = '"+userId+"', dModifiedDate = getDate(),"+
 					" vRemarks = '"+narration+"' where vAdjustId like '"+adjustId+"'";
-
 			SQLQuery insertMain = session.createSQLQuery(sqlApprove);
 			insertMain.executeUpdate();
 			tx.commit();
@@ -245,8 +240,7 @@ public class StockAdjustmentGateway
 					" FROM trans.tbStockAdjustmentInfo where vAdjustId = :adjustId ";
 			SQLQuery select = session.createSQLQuery(sql);
 			select.setParameter("adjustId", idFind);
-
-			for(Iterator<?> iter = select.list().iterator(); iter.hasNext();)
+			for (Iterator<?> iter = select.list().iterator(); iter.hasNext();)
 			{
 				ret = true;
 				Object[] element = (Object[]) iter.next();
